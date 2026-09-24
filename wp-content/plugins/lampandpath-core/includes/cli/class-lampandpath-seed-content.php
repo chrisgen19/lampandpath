@@ -401,15 +401,24 @@ class Lampandpath_Seed_Content {
 	}
 
 	/**
-	 * Deletes WordPress's "Hello world!" post and "Sample Page", but only while they are untouched.
+	 * Moves WordPress's "Hello world!" post and "Sample Page" to the trash while they are untouched.
 	 *
-	 * WordPress gives a new post a modified date equal to its publish date and
-	 * changes it on every edit, so a mismatch means someone has reused the post.
+	 * Only the posts the installer created qualify: it always gives them IDs 1
+	 * and 2, and IDs are never reused, so a post someone later creates with the
+	 * same slug is never matched. WordPress gives a new post a modified date equal
+	 * to its publish date and changes it on every edit, so a mismatch means the
+	 * sample was reused. Trashing (not deleting) keeps any mistake recoverable.
 	 */
 	private function remove_sample_content() {
-		foreach ( array( 'hello-world' => 'post', 'sample-page' => 'page' ) as $slug => $post_type ) {
-			$post = get_post( $this->find_post( $slug, $post_type ) );
-			if ( ! $post ) {
+		$defaults = array(
+			1 => array( 'hello-world', 'post' ),
+			2 => array( 'sample-page', 'page' ),
+		);
+
+		foreach ( $defaults as $id => $sample ) {
+			list( $slug, $post_type ) = $sample;
+			$post                     = get_post( $id );
+			if ( ! $post || $post->post_type !== $post_type || $post->post_name !== $slug || 'trash' === $post->post_status ) {
 				continue;
 			}
 
@@ -417,8 +426,8 @@ class Lampandpath_Seed_Content {
 				WP_CLI::log( sprintf( 'Kept the "%s" %s: it has been edited.', $slug, $post_type ) );
 				continue;
 			}
-			if ( wp_delete_post( $post->ID, true ) ) {
-				WP_CLI::log( sprintf( 'Removed the default "%s" %s.', $slug, $post_type ) );
+			if ( wp_trash_post( $post->ID ) ) {
+				WP_CLI::log( sprintf( 'Moved the default "%s" %s to the trash.', $slug, $post_type ) );
 			}
 		}
 	}

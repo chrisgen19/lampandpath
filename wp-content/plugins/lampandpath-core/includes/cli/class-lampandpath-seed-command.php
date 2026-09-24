@@ -13,6 +13,13 @@ defined( 'ABSPATH' ) || exit;
 class Lampandpath_Seed_Command {
 
 	/**
+	 * False once a category, tag or page fails to seed.
+	 *
+	 * @var bool
+	 */
+	private $ok = true;
+
+	/**
 	 * Article categories from the design, keyed by slug.
 	 */
 	private const CATEGORIES = array(
@@ -67,9 +74,11 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Seeds site settings, terms, pages, demo content and menus from the homepage design.
 	 *
-	 * Existing items are reused and never overwritten, so the command is safe to
-	 * run repeatedly. Menus only fill empty menu locations unless --reset-menus
-	 * is passed, so menus assigned or edited in wp-admin are left alone.
+	 * Every run resets the site title, tagline, permalink structure and reading
+	 * settings to the design's values. Everything else is reused and never
+	 * overwritten, so the command is safe to run repeatedly. Menus only fill empty
+	 * menu locations unless --reset-menus is passed, so menus assigned or edited
+	 * in wp-admin are left alone.
 	 *
 	 * ## OPTIONS
 	 *
@@ -110,7 +119,7 @@ class Lampandpath_Seed_Command {
 		$menus_ok = $this->seed_menus( $targets, (bool) WP_CLI\Utils\get_flag_value( $assoc_args, 'reset-menus', false ) );
 		$this->seed_theme_mods();
 
-		if ( ! $menus_ok || ! $content_ok ) {
+		if ( ! $this->ok || ! $menus_ok || ! $content_ok ) {
 			WP_CLI::error( 'Seed finished with errors; see the warnings above.' );
 		}
 		WP_CLI::success( 'Seed complete.' );
@@ -149,7 +158,7 @@ class Lampandpath_Seed_Command {
 
 			$result = wp_insert_term( $name, $taxonomy, array( 'slug' => $slug ) );
 			if ( is_wp_error( $result ) ) {
-				WP_CLI::warning( sprintf( '%s "%s": %s', $label, $name, $result->get_error_message() ) );
+				$this->fail( sprintf( '%s "%s": %s', $label, $name, $result->get_error_message() ) );
 				continue;
 			}
 			$ids[ $slug ] = (int) $result['term_id'];
@@ -208,7 +217,7 @@ class Lampandpath_Seed_Command {
 		// and every re-run would create another copy, so stop and ask for the conflict to be fixed.
 		$attachment = get_page_by_path( $slug, OBJECT, array( 'attachment' ) );
 		if ( $attachment ) {
-			WP_CLI::warning( sprintf( 'Page "%s" not created: media item #%d already uses that slug. Rename its slug, then re-run.', $slug, $attachment->ID ) );
+			$this->fail( sprintf( 'Page "%s" not created: media item #%d already uses that slug. Rename its slug, then re-run.', $slug, $attachment->ID ) );
 			return 0;
 		}
 
@@ -224,7 +233,7 @@ class Lampandpath_Seed_Command {
 			true
 		);
 		if ( is_wp_error( $id ) ) {
-			WP_CLI::warning( sprintf( 'Page "%s": %s', $title, $id->get_error_message() ) );
+			$this->fail( sprintf( 'Page "%s": %s', $title, $id->get_error_message() ) );
 			return 0;
 		}
 
@@ -527,5 +536,15 @@ class Lampandpath_Seed_Command {
 		);
 
 		return $admins ? (int) $admins[0] : 0;
+	}
+
+	/**
+	 * Logs a failure and marks the run as failed, so it cannot end with "Seed complete".
+	 *
+	 * @param string $message What went wrong.
+	 */
+	private function fail( $message ) {
+		WP_CLI::warning( $message );
+		$this->ok = false;
 	}
 }
