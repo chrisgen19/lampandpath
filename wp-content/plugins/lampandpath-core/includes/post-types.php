@@ -178,9 +178,11 @@ function lampandpath_core_publish_missed_verses() {
 			'post_type'      => 'lp_verse',
 			'post_status'    => 'future',
 			'fields'         => 'ids',
+			// Newest first, so today's verse is published on the first visit even after a long outage;
+			// a larger backlog is worked through 10 at a time on the following visits.
 			'posts_per_page' => 10,
 			'orderby'        => 'date',
-			'order'          => 'ASC',
+			'order'          => 'DESC',
 			// GMT, like check_and_publish_future_post(), which would otherwise reschedule the verse.
 			'date_query'     => array(
 				array(
