@@ -152,6 +152,40 @@ function lampandpath_core_order_plan_archive( $query ) {
 add_action( 'pre_get_posts', 'lampandpath_core_order_plan_archive' );
 
 /**
+ * Publishes verses whose scheduled day has arrived but that WP-Cron has not published yet.
+ *
+ * WP-Cron only runs when the site gets visits, and some hosts block it, so a
+ * verse can stay "Scheduled" after its day starts. The homepage already shows
+ * it as today's verse (lampandpath_get_verse_of_the_day()), but WordPress keeps
+ * scheduled posts private: it would be missing from the verse archive and its
+ * page and share link would 404. Publishing it, as WP-Cron would have, fixes
+ * all of them. Runs before the main query, so the current page already sees it.
+ */
+function lampandpath_core_publish_missed_verses() {
+	$missed = get_posts(
+		array(
+			'post_type'      => 'lp_verse',
+			'post_status'    => 'future',
+			'fields'         => 'ids',
+			'posts_per_page' => 10,
+			'orderby'        => 'date',
+			'order'          => 'ASC',
+			'date_query'     => array(
+				array(
+					'before'    => current_time( 'mysql' ),
+					'inclusive' => true,
+				),
+			),
+		)
+	);
+
+	foreach ( $missed as $verse_id ) {
+		check_and_publish_future_post( $verse_id );
+	}
+}
+add_action( 'wp_loaded', 'lampandpath_core_publish_missed_verses' );
+
+/**
  * Builds the common post type labels from a singular and plural name.
  *
  * @param string $singular Singular label, e.g. "Reading plan".
