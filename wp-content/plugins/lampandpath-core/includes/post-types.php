@@ -134,6 +134,24 @@ function lampandpath_core_register_taxonomies() {
 add_action( 'init', 'lampandpath_core_register_taxonomies' );
 
 /**
+ * Lists reading plans in their "Order", then by title, on the plan archive, as on the homepage.
+ *
+ * @param WP_Query $query Query.
+ */
+function lampandpath_core_order_plan_archive( $query ) {
+	if ( ! is_admin() && $query->is_main_query() && $query->is_post_type_archive( 'lp_plan' ) ) {
+		$query->set(
+			'orderby',
+			array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			)
+		);
+	}
+}
+add_action( 'pre_get_posts', 'lampandpath_core_order_plan_archive' );
+
+/**
  * Builds the common post type labels from a singular and plural name.
  *
  * @param string $singular Singular label, e.g. "Reading plan".
