@@ -13,6 +13,21 @@
 add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
 
 /**
+ * Keeps the form result flags (?lp_prayer=, ?lp_subscribe=) out of page links.
+ *
+ * The no-JavaScript form handlers add them to the page they return to, and
+ * WordPress copies the current query string into pagination links, which
+ * would show the form's message again on every page.
+ *
+ * @param string $url Page link.
+ * @return string
+ */
+function lampandpath_clean_pagenum_link( $url ) {
+	return remove_query_arg( array( 'lp_prayer', 'lp_subscribe' ), $url );
+}
+add_filter( 'get_pagenum_link', 'lampandpath_clean_pagenum_link' );
+
+/**
  * Returns the intro of the current listing for template-parts/components/page-intro.php.
  *
  * Covers the Articles page, categories, tags, dates and other archives. The
@@ -22,7 +37,9 @@ add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
  */
 function lampandpath_listing_intro() {
 	if ( is_home() ) {
-		$page = get_post( (int) get_option( 'page_for_posts' ) );
+		// get_post( 0 ) would return the current post, so no posts page means no page.
+		$page_id = (int) get_option( 'page_for_posts' );
+		$page    = $page_id ? get_post( $page_id ) : null;
 
 		// WordPress ignores the posts page's content, so it becomes the intro, falling back to the tagline.
 		if ( $page && '' !== trim( $page->post_content ) ) {

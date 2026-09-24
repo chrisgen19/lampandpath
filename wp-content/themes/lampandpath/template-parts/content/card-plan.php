@@ -20,7 +20,7 @@ $lampandpath_heading = ( isset( $args['heading'] ) && in_array( $args['heading']
 $lampandpath_days    = lampandpath_get_plan_days( $lampandpath_plan );
 $lampandpath_minutes = (int) get_post_meta( $lampandpath_plan->ID, 'lp_minutes', true );
 ?>
-<article class="flex flex-col rounded-[20px] border border-line bg-white p-7 wrap-anywhere">
+<article id="<?php echo esc_attr( 'post-' . $lampandpath_plan->ID ); ?>" class="flex flex-col rounded-[20px] border border-line bg-white p-7 wrap-anywhere">
 	<?php lampandpath_plan_bar( $lampandpath_days, 'h-9' ); ?>
 
 	<<?php echo esc_html( $lampandpath_heading ); ?> class="mt-6 font-serif text-[26px] leading-[31px] font-semibold text-ink"><?php echo esc_html( get_the_title( $lampandpath_plan ) ); ?></<?php echo esc_html( $lampandpath_heading ); ?>>

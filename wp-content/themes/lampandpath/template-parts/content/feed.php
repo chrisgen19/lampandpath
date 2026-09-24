@@ -9,6 +9,7 @@
  * Args:
  * - query (WP_Query) Defaults to the main query.
  * - card  (string)   Template part for every item, e.g. "template-parts/content/card-verse".
+ * - tag   (string)   The list element: "div" (default) or "ul" for items that are <li>.
  * - class (string)   Classes for the list. Default "divide-y divide-line".
  * - empty (string)   Message when there is nothing to list.
  * - more  (string)   "Load more" label.
@@ -21,12 +22,14 @@ $lampandpath_args  = wp_parse_args(
 	array(
 		'query' => null,
 		'card'  => '',
+		'tag'   => 'div',
 		'class' => 'divide-y divide-line',
 		'empty' => __( 'There are no articles here yet.', 'lampandpath' ),
 		'more'  => __( 'Load more articles', 'lampandpath' ),
 	)
 );
 $lampandpath_query = $lampandpath_args['query'] instanceof WP_Query ? $lampandpath_args['query'] : $GLOBALS['wp_query'];
+$lampandpath_tag   = 'ul' === $lampandpath_args['tag'] ? 'ul' : 'div';
 
 if ( ! $lampandpath_query->have_posts() ) {
 	?>
@@ -35,7 +38,7 @@ if ( ! $lampandpath_query->have_posts() ) {
 	return;
 }
 ?>
-<div data-lp-feed class="<?php echo esc_attr( $lampandpath_args['class'] ); ?>">
+<<?php echo esc_html( $lampandpath_tag ); ?> data-lp-feed class="<?php echo esc_attr( $lampandpath_args['class'] ); ?>">
 	<?php
 	while ( $lampandpath_query->have_posts() ) {
 		$lampandpath_query->the_post();
@@ -48,7 +51,7 @@ if ( ! $lampandpath_query->have_posts() ) {
 	}
 	wp_reset_postdata();
 	?>
-</div>
+</<?php echo esc_html( $lampandpath_tag ); ?>>
 
 <?php
 get_template_part(

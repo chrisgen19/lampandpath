@@ -18,6 +18,8 @@ $lampandpath_writers = function_exists( 'lampandpath_get_writers' )
 			'orderby'             => 'display_name',
 		)
 	);
+// Published article counts for every writer in one query.
+$lampandpath_counts = $lampandpath_writers ? count_many_users_posts( wp_list_pluck( $lampandpath_writers, 'ID' ), 'post', true ) : array();
 ?>
 
 <main id="primary" class="grow bg-white">
@@ -30,8 +32,10 @@ $lampandpath_writers = function_exists( 'lampandpath_get_writers' )
 
 			<div class="mx-auto max-w-site px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
 				<?php if ( '' !== trim( get_the_content() ) ) : ?>
-					<div class="entry-content mb-12 max-w-[720px] wrap-anywhere">
-						<?php the_content(); ?>
+					<div class="mb-12 max-w-[720px]">
+						<div class="entry-content wrap-anywhere">
+							<?php the_content(); ?>
+						</div>
 					</div>
 				<?php endif; ?>
 
@@ -40,7 +44,7 @@ $lampandpath_writers = function_exists( 'lampandpath_get_writers' )
 						<?php foreach ( $lampandpath_writers as $lampandpath_writer ) : ?>
 							<?php
 							$lampandpath_role  = (string) get_user_meta( $lampandpath_writer->ID, 'lp_role_title', true );
-							$lampandpath_count = (int) count_user_posts( $lampandpath_writer->ID, 'post', true );
+							$lampandpath_count = isset( $lampandpath_counts[ $lampandpath_writer->ID ] ) ? (int) $lampandpath_counts[ $lampandpath_writer->ID ] : 0;
 							?>
 							<li class="flex flex-col rounded-[20px] border border-line bg-white p-7 wrap-anywhere">
 								<div class="flex items-center gap-4">

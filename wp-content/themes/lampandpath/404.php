@@ -42,7 +42,9 @@ $lampandpath_popular = function_exists( 'lampandpath_get_most_read' )
 			<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				<?php
 				global $post;
-				foreach ( $lampandpath_popular as $post ) { // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored by wp_reset_postdata() below.
+				// A 404 has no post, which wp_reset_postdata() cannot restore, so the original is kept here.
+				$lampandpath_original_post = $post;
+				foreach ( $lampandpath_popular as $post ) { // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below.
 					setup_postdata( $post );
 					get_template_part(
 						'template-parts/content/card-article',
@@ -54,6 +56,7 @@ $lampandpath_popular = function_exists( 'lampandpath_get_most_read' )
 					);
 				}
 				wp_reset_postdata();
+				$post = $lampandpath_original_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the value from before the loop.
 				?>
 			</div>
 		</section>

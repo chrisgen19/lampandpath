@@ -55,8 +55,10 @@ get_header();
 
 			<div class="mx-auto max-w-site px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
 				<?php if ( '' !== trim( get_the_content() ) ) : ?>
-					<div class="entry-content mb-14 max-w-[720px] wrap-anywhere">
-						<?php the_content(); ?>
+					<div class="mb-14 max-w-[720px]">
+						<div class="entry-content wrap-anywhere">
+							<?php the_content(); ?>
+						</div>
 					</div>
 				<?php endif; ?>
 

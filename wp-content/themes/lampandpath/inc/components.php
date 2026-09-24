@@ -296,13 +296,26 @@ function lampandpath_form_ready( $action ) {
 }
 
 /**
- * Prints a reading plan's day bar: one segment per day, with day one highlighted.
+ * Prints a reading plan's day bar with day one highlighted.
+ *
+ * Up to 40 days it has one segment per day, as in the design. Longer plans
+ * (e.g. a year) would need more room for the 4px gaps than a card has on a
+ * phone, so they get one continuous bar with day one as a slice at its start.
  *
  * @param int    $days   Number of days in the plan.
  * @param string $height Tailwind height class, e.g. "h-9".
  */
 function lampandpath_plan_bar( $days, $height ) {
 	if ( $days < 1 ) {
+		return;
+	}
+
+	if ( $days > 40 ) {
+		?>
+		<div aria-hidden="true" class="flex overflow-hidden rounded-[3px] bg-accent-tint <?php echo esc_attr( $height ); ?>">
+			<span class="min-w-1 bg-accent" style="width: <?php echo esc_attr( round( 100 / $days, 3 ) ); ?>%"></span>
+		</div>
+		<?php
 		return;
 	}
 	?>

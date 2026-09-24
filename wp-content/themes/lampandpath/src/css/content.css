@@ -8,7 +8,9 @@
  *
  * These rules are unlayered on purpose: core block styles (e.g. separator,
  * table, button) print unlayered and would otherwise beat anything in a
- * Tailwind layer, whatever its specificity.
+ * Tailwind layer, whatever its specificity. For the same reason they beat
+ * utilities on the .entry-content element itself (its max-width is "none"),
+ * so put widths and spacing on a wrapper around it.
  */
 :is(.entry-content, .editor-styles-wrapper) {
 	@apply prose prose-lg max-w-none font-sans;

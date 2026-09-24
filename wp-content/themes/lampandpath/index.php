@@ -23,8 +23,10 @@ get_header();
 			<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 				<?php get_template_part( 'template-parts/components/page-intro', null, array( 'title' => get_the_title() ) ); ?>
 				<div class="mx-auto max-w-site px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
-					<div class="entry-content max-w-[720px] wrap-anywhere">
-						<?php the_content(); ?>
+					<div class="max-w-[720px]">
+						<div class="entry-content wrap-anywhere">
+							<?php the_content(); ?>
+						</div>
 					</div>
 				</div>
 			</article>

@@ -5,19 +5,19 @@
  * Used by the homepage prayer section and the Prayer wall page template.
  * assets/js/interactions.js handles "I prayed" (data-lp-prayed).
  *
- * Args: post (WP_Post) An approved prayer request.
+ * Args: post (WP_Post) An approved prayer request; defaults to the current post in The Loop.
  *
  * @package Lampandpath
  */
 
-$lampandpath_request = isset( $args['post'] ) ? get_post( $args['post'] ) : null;
+$lampandpath_request = get_post( isset( $args['post'] ) ? $args['post'] : null );
 if ( ! $lampandpath_request ) {
 	return;
 }
 
 $lampandpath_name = (string) get_post_meta( $lampandpath_request->ID, 'lp_first_name', true );
 ?>
-<li class="rounded-[18px] border border-line bg-white p-6 wrap-anywhere">
+<li id="<?php echo esc_attr( 'post-' . $lampandpath_request->ID ); ?>" class="rounded-[18px] border border-line bg-white p-6 wrap-anywhere">
 	<p class="text-[17px] leading-[27px] text-ink"><?php echo esc_html( wp_strip_all_tags( $lampandpath_request->post_content ) ); ?></p>
 	<div class="mt-4 flex flex-wrap items-center justify-between gap-4">
 		<span class="flex flex-wrap gap-x-2.5 text-sm leading-5 text-muted">
