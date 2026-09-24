@@ -102,7 +102,7 @@ function lampandpath_social_links() {
  * @param string $location Menu location, e.g. "footer-1".
  */
 function lampandpath_footer_menu_column( $location ) {
-	if ( ! has_nav_menu( $location ) ) {
+	if ( ! lampandpath_has_menu_items( $location ) ) {
 		return;
 	}
 

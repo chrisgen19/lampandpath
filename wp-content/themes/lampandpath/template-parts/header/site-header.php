@@ -9,7 +9,7 @@
  * @package Lampandpath
  */
 
-$lampandpath_has_menu        = has_nav_menu( 'primary' );
+$lampandpath_has_menu        = lampandpath_has_menu_items( 'primary' );
 $lampandpath_subscribe_url   = lampandpath_subscribe_url();
 $lampandpath_subscribe_label = lampandpath_get_option( 'lampandpath_subscribe_label' );
 ?>

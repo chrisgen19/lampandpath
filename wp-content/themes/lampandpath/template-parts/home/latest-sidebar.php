@@ -8,7 +8,7 @@
  */
 
 $lampandpath_popular    = lampandpath_core_active() ? lampandpath_get_most_read( 5 ) : array();
-$lampandpath_has_topics = has_nav_menu( 'topics' );
+$lampandpath_has_topics = lampandpath_has_menu_items( 'topics' );
 if ( ! $lampandpath_popular && ! $lampandpath_has_topics ) {
 	return;
 }

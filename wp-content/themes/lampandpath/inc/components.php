@@ -204,17 +204,17 @@ function lampandpath_menu_items( $location ) {
  * @return string Safe HTML.
  */
 function lampandpath_format_verse( $content ) {
-	$text = trim( wp_kses( preg_replace( '/<!--.*?-->/s', '', $content ), array( 'sup' => array() ) ) );
+	// Line breaks (common in poetry such as the Psalms) are kept; paragraphs are joined with a space.
+	$allowed = array(
+		'br'  => array(),
+		'sup' => array(),
+	);
+	$text    = preg_replace( array( '/<!--.*?-->/s', '#</p>#i' ), array( '', '</p> ' ), $content );
+	$text    = trim( wp_kses( $text, $allowed ) );
 	// The KJV prints the divine name as LORD; the design sets it in small caps.
 	$text = preg_replace( '/\bLORD\b/', '<span class="tracking-[0.03em] [font-variant-caps:small-caps]">Lord</span>', $text );
 
-	return wp_kses(
-		$text,
-		array(
-			'sup'  => array(),
-			'span' => array( 'class' => true ),
-		)
-	);
+	return wp_kses( $text, $allowed + array( 'span' => array( 'class' => true ) ) );
 }
 
 /**
@@ -224,9 +224,25 @@ function lampandpath_format_verse( $content ) {
  * @return string
  */
 function lampandpath_plain_verse( $content ) {
-	$text = preg_replace( '#<sup>.*?</sup>#s', '', preg_replace( '/<!--.*?-->/s', '', $content ) );
+	$text = preg_replace( array( '/<!--.*?-->/s', '#<sup\b[^>]*>.*?</sup>#is' ), '', $content );
+	// Line and paragraph breaks separate words, so keep them as spaces before stripping tags.
+	$text = preg_replace( '#<br\s*/?>|</p>#i', ' ', $text );
 
 	return trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $text ) ) );
+}
+
+/**
+ * Checks whether a form's admin-post.php handler is registered.
+ *
+ * The prayer and newsletter handlers live in lampandpath-core (Phase 4). Until
+ * they exist, or if the plugin is inactive, the forms are disabled instead of
+ * posting to an action that returns an HTTP 400 error.
+ *
+ * @param string $action admin-post.php action, e.g. "lampandpath_prayer".
+ * @return bool
+ */
+function lampandpath_form_ready( $action ) {
+	return (bool) has_action( 'admin_post_nopriv_' . $action );
 }
 
 /**

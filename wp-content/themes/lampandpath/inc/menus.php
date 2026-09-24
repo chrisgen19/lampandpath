@@ -22,6 +22,23 @@ function lampandpath_menu_link_classes() {
 }
 
 /**
+ * Checks whether a menu location has a menu with at least one item.
+ *
+ * has_nav_menu() is also true for an assigned but empty menu, which would
+ * leave empty wrappers on the page (a card heading, a menu button). The
+ * menu's stored item count avoids an extra query.
+ *
+ * @param string $location Menu location.
+ * @return bool
+ */
+function lampandpath_has_menu_items( $location ) {
+	$locations = get_nav_menu_locations();
+	$menu      = empty( $locations[ $location ] ) ? false : wp_get_nav_menu_object( $locations[ $location ] );
+
+	return $menu && $menu->count > 0;
+}
+
+/**
  * Adds the location's Tailwind classes to each menu link.
  *
  * @param array    $atts HTML attributes for the link.
