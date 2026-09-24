@@ -54,13 +54,14 @@ $lampandpath_outline     = lampandpath_button_class( 'outline', 'md', true );
 						?>
 					</a>
 				<?php endif; ?>
+				<?php // data-lp-label marks the text the script briefly swaps for "Copied" / "Link copied". ?>
 				<button type="button" data-lp-copy="<?php echo esc_attr( $lampandpath_share_text ); ?>" class="<?php echo esc_attr( $lampandpath_outline ); ?>">
 					<?php lampandpath_icon( 'copy', array( 'size' => 18 ) ); ?>
-					<?php esc_html_e( 'Copy verse', 'lampandpath' ); ?>
+					<span data-lp-label><?php esc_html_e( 'Copy verse', 'lampandpath' ); ?></span>
 				</button>
 				<button type="button" data-lp-share="<?php echo esc_attr( $lampandpath_share_text ); ?>" data-lp-share-url="<?php echo esc_url( get_permalink( $lampandpath_verse ) ); ?>" class="<?php echo esc_attr( $lampandpath_outline ); ?>">
 					<?php lampandpath_icon( 'share', array( 'size' => 18 ) ); ?>
-					<?php esc_html_e( 'Share', 'lampandpath' ); ?>
+					<span data-lp-label><?php esc_html_e( 'Share', 'lampandpath' ); ?></span>
 				</button>
 			</div>
 		</div>

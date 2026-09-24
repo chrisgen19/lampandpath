@@ -14,6 +14,10 @@
 $lampandpath_class = isset( $args['class'] ) ? $args['class'] : '';
 $lampandpath_ready = lampandpath_form_ready( 'lampandpath_subscribe' );
 $lampandpath_note  = $lampandpath_ready ? lampandpath_home_option( 'newsletter', 'note' ) : __( 'Newsletter signup is paused right now.', 'lampandpath' );
+
+// Display only: the result code comes from our own redirect after a no-JavaScript submission.
+$lampandpath_result  = isset( $_GET['lp_subscribe'] ) ? sanitize_key( wp_unslash( $_GET['lp_subscribe'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$lampandpath_message = ( $lampandpath_result && function_exists( 'lampandpath_core_form_message' ) ) ? lampandpath_core_form_message( $lampandpath_result ) : '';
 ?>
 <div id="newsletter" class="rounded-3xl bg-accent-soft p-7 sm:p-10 <?php echo esc_attr( $lampandpath_class ); ?>">
 	<span aria-hidden="true" class="flex size-11 items-center justify-center rounded-full bg-white text-accent">
@@ -24,8 +28,11 @@ $lampandpath_note  = $lampandpath_ready ? lampandpath_home_option( 'newsletter',
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-lp-newsletter-form class="mt-6">
 		<input type="hidden" name="action" value="lampandpath_subscribe">
+		<input type="hidden" name="lp_started" value="<?php echo esc_attr( time() ); ?>">
 		<?php wp_nonce_field( 'lampandpath_subscribe', 'lampandpath_subscribe_nonce' ); ?>
+		<?php get_template_part( 'template-parts/components/form-status', null, array( 'message' => $lampandpath_message, 'success' => 'subscribed' === $lampandpath_result ) ); ?>
 		<fieldset class="contents"<?php disabled( ! $lampandpath_ready ); ?>>
+			<?php get_template_part( 'template-parts/components/form-honeypot', null, array( 'id' => 'newsletter-website' ) ); ?>
 			<label for="newsletter-email" class="block text-base leading-6 font-semibold text-ink"><?php esc_html_e( 'Email address', 'lampandpath' ); ?></label>
 			<input id="newsletter-email" name="email" type="email" autocomplete="email" required placeholder="<?php esc_attr_e( 'you@example.com', 'lampandpath' ); ?>" class="mt-2 h-13 w-full rounded-xl border-[1.5px] border-field bg-white px-4 text-[17px] text-ink disabled:bg-surface-soft">
 			<button type="submit" class="mt-3 h-13 w-full rounded-full bg-accent text-[17px] leading-none font-semibold text-white hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"><?php esc_html_e( 'Subscribe', 'lampandpath' ); ?></button>
