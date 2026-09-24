@@ -4,6 +4,7 @@
 !/.gitignore
 !/.ddev/
 !/README.md
+!/docs/
 !/wp-content/
 
 # wp-content: only track code, never uploads/cache/upgrade/languages
@@ -16,10 +17,9 @@
 /wp-content/themes/*
 !/wp-content/themes/lampandpath/
 
-# Plugins: only custom plugins (third-party ones are installed per environment).
-# Whitelist a plugin by adding a line like:
-# !/wp-content/plugins/lampandpath-core/
+# Plugins: only custom plugins (third-party ones are installed per environment)
 /wp-content/plugins/*
+!/wp-content/plugins/lampandpath-core/
 
 # Dependencies, build output and junk inside tracked code
 node_modules/
