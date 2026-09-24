@@ -65,6 +65,15 @@ function lampandpath_sanitize_accent( $value ) {
 }
 
 /**
+ * Returns the current Season color.
+ *
+ * @return string Hex color, one of lampandpath_season_colors().
+ */
+function lampandpath_accent() {
+	return lampandpath_sanitize_accent( lampandpath_get_option( 'lampandpath_accent' ) );
+}
+
+/**
  * Adds a text, textarea or URL setting with its control.
  *
  * @param WP_Customize_Manager $wp_customize Customizer instance.
@@ -142,7 +151,7 @@ add_action( 'customize_register', 'lampandpath_customize_register' );
  * Tailwind derives accent-strong, accent-soft and accent-tint from --color-accent.
  */
 function lampandpath_accent_css() {
-	$accent = lampandpath_sanitize_accent( lampandpath_get_option( 'lampandpath_accent' ) );
+	$accent = lampandpath_accent();
 
 	if ( lampandpath_theme_mod_defaults()['lampandpath_accent'] !== $accent ) {
 		wp_add_inline_style( 'lampandpath-app', sprintf( ':root{--color-accent:%s}', $accent ) );
