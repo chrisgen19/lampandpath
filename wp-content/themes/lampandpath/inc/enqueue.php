@@ -50,8 +50,51 @@ function lampandpath_scripts() {
 			'in_footer' => true,
 		)
 	);
+
+	wp_enqueue_script(
+		'lampandpath-interactions',
+		get_theme_file_uri( 'assets/js/interactions.js' ),
+		array(),
+		lampandpath_asset_version( 'assets/js/interactions.js' ),
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+	wp_add_inline_script( 'lampandpath-interactions', 'window.lampandpath = ' . wp_json_encode( lampandpath_interactions_config() ) . ';', 'before' );
 }
 add_action( 'wp_enqueue_scripts', 'lampandpath_scripts' );
+
+/**
+ * Returns the settings and messages for assets/js/interactions.js.
+ *
+ * @return array
+ */
+function lampandpath_interactions_config() {
+	// Editors' own visits are not counted, so "Most read" reflects readers.
+	$view_post = ( is_singular( 'post' ) && ! current_user_can( 'edit_posts' ) ) ? get_queried_object_id() : 0;
+
+	return array(
+		'rest'     => esc_url_raw( rest_url( 'lampandpath/v1/' ) ),
+		'viewPost' => $view_post,
+		'strings'  => array(
+			'copied'      => __( 'Verse copied', 'lampandpath' ),
+			'copiedShort' => __( 'Copied', 'lampandpath' ),
+			'linkCopied'  => __( 'Link copied', 'lampandpath' ),
+			'copyFailed'  => __( 'Copying is not available in this browser.', 'lampandpath' ),
+			'saved'       => __( 'Saved for later', 'lampandpath' ),
+			'unsaved'     => __( 'Removed from saved articles', 'lampandpath' ),
+			/* translators: %d: number of articles added to the list. */
+			'loaded'      => __( '%d more articles loaded', 'lampandpath' ),
+			/* translators: %s: topic name, e.g. "Prayer". */
+			'filtered'    => __( 'Showing articles in %s', 'lampandpath' ),
+			'filteredAll' => __( 'Showing all articles', 'lampandpath' ),
+			'noArticles'  => __( 'No articles in this topic yet.', 'lampandpath' ),
+			'sending'     => __( 'Sending…', 'lampandpath' ),
+			'error'       => __( 'Something went wrong. Please try again.', 'lampandpath' ),
+		),
+	);
+}
 
 /**
  * Adds preconnect hints so the Google Fonts CSS and font files start downloading early.
