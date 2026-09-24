@@ -2,8 +2,10 @@
 /**
  * Template Name: Our writers
  *
- * The page content, then a card for every writer with published articles:
- * the About section team first (in their About order), then everyone else.
+ * The page content, then a card per writer: the About section team first (in
+ * their About order, including anyone who has not published yet), then
+ * everyone else with published articles. Only writers with articles show a
+ * count and link to their article archive.
  *
  * @package Lampandpath
  */
@@ -50,8 +52,12 @@ $lampandpath_counts = $lampandpath_writers ? count_many_users_posts( wp_list_plu
 								<div class="flex items-center gap-4">
 									<?php lampandpath_avatar( $lampandpath_writer->ID, 'lg' ); ?>
 									<div class="min-w-0">
-										<h2 class="font-serif text-[26px] leading-[31px] font-semibold">
-											<a href="<?php echo esc_url( get_author_posts_url( $lampandpath_writer->ID ) ); ?>" class="text-ink no-underline hover:text-accent"><?php echo esc_html( $lampandpath_writer->display_name ); ?></a>
+										<h2 class="font-serif text-[26px] leading-[31px] font-semibold text-ink">
+											<?php if ( $lampandpath_count ) : ?>
+												<a href="<?php echo esc_url( get_author_posts_url( $lampandpath_writer->ID ) ); ?>" class="text-ink no-underline hover:text-accent"><?php echo esc_html( $lampandpath_writer->display_name ); ?></a>
+											<?php else : ?>
+												<?php echo esc_html( $lampandpath_writer->display_name ); ?>
+											<?php endif; ?>
 										</h2>
 										<?php if ( $lampandpath_role ) : ?>
 											<p class="mt-0.5 text-[15px] leading-[22px] text-muted"><?php echo esc_html( $lampandpath_role ); ?></p>
@@ -61,12 +67,14 @@ $lampandpath_counts = $lampandpath_writers ? count_many_users_posts( wp_list_plu
 								<?php if ( $lampandpath_writer->description ) : ?>
 									<p class="mt-5 text-[17px] leading-[26px] text-ink-soft"><?php echo esc_html( $lampandpath_writer->description ); ?></p>
 								<?php endif; ?>
-								<p class="mt-auto pt-5 text-[15px] leading-[22px] font-semibold text-accent">
-									<?php
-									/* translators: %s: number of articles. */
-									echo esc_html( sprintf( _n( '%s article', '%s articles', $lampandpath_count, 'lampandpath' ), number_format_i18n( $lampandpath_count ) ) );
-									?>
-								</p>
+								<?php if ( $lampandpath_count ) : ?>
+									<p class="mt-auto pt-5 text-[15px] leading-[22px] font-semibold text-accent">
+										<?php
+										/* translators: %s: number of articles. */
+										echo esc_html( sprintf( _n( '%s article', '%s articles', $lampandpath_count, 'lampandpath' ), number_format_i18n( $lampandpath_count ) ) );
+										?>
+									</p>
+								<?php endif; ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>
