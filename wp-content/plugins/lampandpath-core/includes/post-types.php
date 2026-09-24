@@ -159,9 +159,20 @@ add_action( 'pre_get_posts', 'lampandpath_core_order_plan_archive' );
  * it as today's verse (lampandpath_get_verse_of_the_day()), but WordPress keeps
  * scheduled posts private: it would be missing from the verse archive and its
  * page and share link would 404. Publishing it, as WP-Cron would have, fixes
- * all of them. Runs before the main query, so the current page already sees it.
+ * all of them.
+ *
+ * Runs on front-end page requests only, before the main query so the current
+ * page already sees the verse (REST requests end at parse_request priority 10).
+ * Publishing fires save_post, so it must never run inside a wp-admin save,
+ * whose form data belongs to another post. A lock stops two visitors from
+ * publishing the same verse, and its hooks, twice.
  */
 function lampandpath_core_publish_missed_verses() {
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
+	if ( ! in_array( $method, array( 'GET', 'HEAD' ), true ) ) {
+		return;
+	}
+
 	$missed = get_posts(
 		array(
 			'post_type'      => 'lp_verse',
@@ -170,20 +181,65 @@ function lampandpath_core_publish_missed_verses() {
 			'posts_per_page' => 10,
 			'orderby'        => 'date',
 			'order'          => 'ASC',
+			// GMT, like check_and_publish_future_post(), which would otherwise reschedule the verse.
 			'date_query'     => array(
 				array(
-					'before'    => current_time( 'mysql' ),
+					'column'    => 'post_date_gmt',
+					'before'    => current_time( 'mysql', true ),
 					'inclusive' => true,
 				),
 			),
 		)
 	);
+	if ( ! $missed || ! lampandpath_core_lock( 'lampandpath_publishing_verses' ) ) {
+		return;
+	}
 
 	foreach ( $missed as $verse_id ) {
+		// Another request may have published it since the query above.
+		clean_post_cache( $verse_id );
 		check_and_publish_future_post( $verse_id );
 	}
+
+	lampandpath_core_unlock( 'lampandpath_publishing_verses' );
 }
-add_action( 'wp_loaded', 'lampandpath_core_publish_missed_verses' );
+add_action( 'parse_request', 'lampandpath_core_publish_missed_verses', 11 );
+
+/**
+ * Takes a named lock, stored as an option.
+ *
+ * INSERT IGNORE is atomic, unlike add_option(), so only one request gets the
+ * lock. A lock older than a minute was left by a request that failed, and is taken over.
+ *
+ * @param string $name Lock (option) name.
+ * @return bool Whether this request holds the lock.
+ */
+function lampandpath_core_lock( $name ) {
+	global $wpdb;
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery -- The options API cannot insert atomically.
+	if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'off')", $name, time() ) ) ) {
+		return true;
+	}
+
+	$since = (int) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name ) );
+	$taken = $since && $since < time() - MINUTE_IN_SECONDS
+		&& $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", time(), $name, $since ) );
+	// phpcs:enable
+
+	return (bool) $taken;
+}
+
+/**
+ * Releases a lock taken with lampandpath_core_lock().
+ *
+ * @param string $name Lock (option) name.
+ */
+function lampandpath_core_unlock( $name ) {
+	global $wpdb;
+
+	$wpdb->delete( $wpdb->options, array( 'option_name' => $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Pairs with lampandpath_core_lock().
+}
 
 /**
  * Builds the common post type labels from a singular and plural name.

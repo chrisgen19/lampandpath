@@ -94,12 +94,19 @@ function lampandpath_core_meta_box_note( $post ) {
 /**
  * Saves the details meta box fields.
  *
+ * Only for the post whose edit form was submitted: save_post also fires for
+ * other posts during the request (e.g. a scheduled post being published), and
+ * the submitted fields must not be written to them.
+ *
  * @param int     $post_id Post ID.
  * @param WP_Post $post    Post object.
  */
 function lampandpath_core_save_meta_box( $post_id, $post ) {
 	$schema = lampandpath_core_post_meta_schema();
 	if ( ! isset( $schema[ $post->post_type ] ) || ! lampandpath_core_verify_nonce( 'lampandpath_core_meta_nonce', 'lampandpath_core_save_meta' ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['post_ID'] ) || (int) $_POST['post_ID'] !== (int) $post_id ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
 		return;
 	}
 	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
