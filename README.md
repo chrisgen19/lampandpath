@@ -44,7 +44,30 @@ The site runs at https://lampandpath.ddev.site.
 
 ## Seeding content
 
-`ddev wp lampandpath seed` sets the site title, permalinks, categories, pages, menus and reading settings from the design. It reuses anything that already exists, so it is safe to run again: menus only fill empty menu locations, and existing pages keep their content and (unless they are drafts) their status. Pass `--reset-menus` to rebuild the seeded menus and reassign their locations (this discards menu edits made in wp-admin). The command exits with an error if a menu links to a page or category that does not exist.
+`ddev wp lampandpath seed` sets up the site from the design:
+
+- **Structure:** site title, permalinks, categories, topic tags, pages, menus and reading settings
+- **Demo content:** 6 writers, the design's 11 articles (with featured images from `plugins/lampandpath-core/seed/images/`), the "Where are you today?" collections, today's verse plus 7 scheduled ones, 3 reading plans and 4 prayer requests (one awaiting approval). Dates are relative to the day you run it.
+
+It reuses anything that already exists and never overwrites edits, so it is safe to run again: menus only fill empty menu locations, existing pages keep their content and (unless they are drafts) their status, and view counts are only set on new articles.
+
+- `--reset-menus` rebuilds the seeded menus and reassigns their locations (this discards menu edits made in wp-admin)
+- `--skip-content` only sets up the structure, with no demo writers, articles, verses, plans, prayers or images
+
+The command exits with an error if anything fails, for example a menu linking to a page that does not exist. Seeded writers get random passwords and `@example.com` emails; reset a password in wp-admin to log in as one.
+
+## Content model
+
+The `lampandpath-core` plugin owns the content; the theme only renders it (via the functions in `includes/template-api.php`).
+
+| Content | Where to edit | Notes |
+|---|---|---|
+| Articles | Posts | Categories, topic tags and Collections; optional manual reading time in the "Reading time" box |
+| Verse of the day | Verses of the day | Title is the reference. The latest verse whose date has arrived is today's, so schedule verses ahead. |
+| Reading plans | Reading plans | One reading per line; the number of lines is the plan length. "Order" sets the homepage order. |
+| Prayer requests | Prayer requests (editors and admins only) | Publishing approves a request; it only appears on the prayer wall if the person agreed |
+| Collections | Posts > Collections | Icon, verse reference and link, order |
+| Writers | Users > Profile | Role title and avatar color; admins choose who appears in the About section |
 
 ## Theme development
 
