@@ -1,6 +1,6 @@
 <?php
 /**
- * Template tags used by the header, footer and fallback templates.
+ * Template tags used by the header and footer.
  *
  * @package Lampandpath
  */
@@ -144,30 +144,4 @@ function lampandpath_copyright_text() {
 			'{site}' => get_bloginfo( 'name' ),
 		)
 	);
-}
-
-/**
- * Returns the heading for listing views rendered by index.php.
- *
- * @return string
- */
-function lampandpath_listing_title() {
-	if ( is_404() ) {
-		return __( 'Page not found', 'lampandpath' );
-	}
-
-	if ( is_search() ) {
-		/* translators: %s: search query. */
-		return sprintf( __( 'Search results for "%s"', 'lampandpath' ), get_search_query( false ) );
-	}
-
-	if ( is_archive() ) {
-		return wp_strip_all_tags( get_the_archive_title() );
-	}
-
-	if ( is_home() && ! is_front_page() ) {
-		return single_post_title( '', false );
-	}
-
-	return __( 'Latest articles', 'lampandpath' );
 }

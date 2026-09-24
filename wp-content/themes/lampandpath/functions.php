@@ -18,6 +18,7 @@ require get_template_directory() . '/inc/icons.php';
 require get_template_directory() . '/inc/menus.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/template-tags.php';
+require get_template_directory() . '/inc/listings.php';
 require get_template_directory() . '/inc/components.php';
 require get_template_directory() . '/inc/homepage.php';
 require get_template_directory() . '/inc/rest.php';

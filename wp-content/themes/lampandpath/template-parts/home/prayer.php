@@ -2,7 +2,8 @@
 /**
  * Homepage: "Can we pray for you?" form and the latest requests from the prayer wall.
  *
- * The "I prayed" buttons get their behavior in Phase 4.
+ * Wall items come from template-parts/content/card-prayer.php, shared with the
+ * Prayer wall page template.
  *
  * @package Lampandpath
  */
@@ -38,25 +39,11 @@ $lampandpath_intro    = lampandpath_home_option( 'prayer', 'intro' );
 
 			<?php if ( $lampandpath_wall ) : ?>
 				<ul class="mt-5 flex flex-col gap-4">
-					<?php foreach ( $lampandpath_wall as $lampandpath_request ) : ?>
-						<?php $lampandpath_name = (string) get_post_meta( $lampandpath_request->ID, 'lp_first_name', true ); ?>
-						<li class="rounded-[18px] border border-line bg-white p-6">
-							<p class="text-[17px] leading-[27px] text-ink"><?php echo esc_html( wp_strip_all_tags( $lampandpath_request->post_content ) ); ?></p>
-							<div class="mt-4 flex flex-wrap items-center justify-between gap-4">
-								<span class="flex flex-wrap gap-x-2.5 text-sm leading-5 text-muted">
-									<span class="font-semibold text-ink-soft"><?php echo esc_html( '' !== $lampandpath_name ? $lampandpath_name : __( 'Shared anonymously', 'lampandpath' ) ); ?></span>
-									<span><?php echo esc_html( lampandpath_relative_time( (int) get_post_time( 'U', true, $lampandpath_request ) ) ); ?></span>
-								</span>
-								<?php // Pressed shows "Prayed" with a check; the accessible name "I prayed" contains the visible text in both states. ?>
-								<button type="button" data-lp-prayed="<?php echo esc_attr( $lampandpath_request->ID ); ?>" aria-pressed="false" aria-label="<?php esc_attr_e( 'I prayed', 'lampandpath' ); ?>" class="group <?php echo esc_attr( lampandpath_button_class( 'outline', 'sm', true ) ); ?> aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent">
-									<?php lampandpath_icon( 'heart', array( 'size' => 18, 'class' => 'group-aria-pressed:hidden' ) ); ?>
-									<?php lampandpath_icon( 'check', array( 'size' => 18, 'class' => 'hidden group-aria-pressed:block' ) ); ?>
-									<span class="group-aria-pressed:hidden"><?php esc_html_e( 'I prayed', 'lampandpath' ); ?></span>
-									<span class="hidden group-aria-pressed:inline"><?php esc_html_e( 'Prayed', 'lampandpath' ); ?></span>
-								</button>
-							</div>
-						</li>
-					<?php endforeach; ?>
+					<?php
+					foreach ( $lampandpath_wall as $lampandpath_request ) {
+						get_template_part( 'template-parts/content/card-prayer', null, array( 'post' => $lampandpath_request ) );
+					}
+					?>
 				</ul>
 			<?php else : ?>
 				<p class="mt-5 rounded-[18px] border border-dashed border-line-strong p-6 text-[17px] leading-[27px] text-ink-soft"><?php esc_html_e( 'No requests have been shared on the prayer wall yet.', 'lampandpath' ); ?></p>

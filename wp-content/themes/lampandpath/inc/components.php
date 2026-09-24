@@ -60,6 +60,40 @@ function lampandpath_text_link_class() {
 }
 
 /**
+ * Returns the classes for the h1 of inner pages (archives, pages, search).
+ *
+ * Articles use the larger title from the homepage hero instead (single.php).
+ *
+ * @return string
+ */
+function lampandpath_page_title_class() {
+	return 'font-serif text-[40px] leading-[1.08] font-semibold tracking-[-0.015em] text-balance wrap-anywhere text-ink sm:text-[48px] lg:text-[56px]';
+}
+
+/**
+ * Returns the classes for a filter chip (pill link), as in the homepage article filters.
+ *
+ * @param bool $current Whether the chip is the current page.
+ * @return string
+ */
+function lampandpath_chip_class( $current = false ) {
+	$state = $current ? 'border-accent bg-accent font-semibold text-white' : 'border-line-strong bg-white font-medium text-ink hover:border-ink';
+
+	return 'flex h-11 items-center rounded-full border px-[18px] text-[15px] leading-none no-underline ' . $state;
+}
+
+/**
+ * Returns the URL of the Articles page (the posts page), or the homepage when none is set.
+ *
+ * @return string
+ */
+function lampandpath_posts_page_url() {
+	$page_id = (int) get_option( 'page_for_posts' );
+
+	return $page_id ? (string) get_permalink( $page_id ) : home_url( '/' );
+}
+
+/**
  * Returns a writer's initials, e.g. "GV" for Grace Villanueva.
  *
  * @param WP_User $user User.
@@ -87,7 +121,7 @@ function lampandpath_initials( $user ) {
  * always printed next to them), so they are hidden from assistive tech.
  *
  * @param int    $user_id User ID.
- * @param string $size    sm (28px) | md (48px) | lg (52px).
+ * @param string $size    sm (28px) | md (48px) | lg (52px) | xl (96px).
  * @return string
  */
 function lampandpath_get_avatar( $user_id, $size = 'md' ) {
@@ -100,6 +134,7 @@ function lampandpath_get_avatar( $user_id, $size = 'md' ) {
 		'sm' => 'size-7 text-[11px]',
 		'md' => 'size-12 text-base',
 		'lg' => 'size-[52px] text-[17px]',
+		'xl' => 'size-24 text-[32px]',
 	);
 	$palettes = array(
 		'green'  => 'bg-[#e3ecdd] text-[#2f5a3c]',
@@ -218,6 +253,21 @@ function lampandpath_format_verse( $content ) {
 }
 
 /**
+ * Returns the ID of today's verse (the one on the homepage), cached for the request.
+ *
+ * @return int Verse ID, or 0 when there is none or lampandpath-core is inactive.
+ */
+function lampandpath_todays_verse_id() {
+	static $id = null;
+	if ( null === $id ) {
+		$verse = lampandpath_core_active() ? lampandpath_get_verse_of_the_day() : null;
+		$id    = $verse ? (int) $verse->ID : 0;
+	}
+
+	return $id;
+}
+
+/**
  * Returns plain verse text without verse numbers, for copying and sharing.
  *
  * @param string $content Verse post content.
@@ -243,6 +293,25 @@ function lampandpath_plain_verse( $content ) {
  */
 function lampandpath_form_ready( $action ) {
 	return (bool) has_action( 'admin_post_nopriv_' . $action );
+}
+
+/**
+ * Prints a reading plan's day bar: one segment per day, with day one highlighted.
+ *
+ * @param int    $days   Number of days in the plan.
+ * @param string $height Tailwind height class, e.g. "h-9".
+ */
+function lampandpath_plan_bar( $days, $height ) {
+	if ( $days < 1 ) {
+		return;
+	}
+	?>
+	<div aria-hidden="true" class="flex gap-1 <?php echo esc_attr( $height ); ?>">
+		<?php for ( $lampandpath_day = 1; $lampandpath_day <= $days; $lampandpath_day++ ) : ?>
+			<span class="flex-1 rounded-[3px] <?php echo 1 === $lampandpath_day ? 'bg-accent' : 'bg-accent-tint'; ?>"></span>
+		<?php endfor; ?>
+	</div>
+	<?php
 }
 
 /**

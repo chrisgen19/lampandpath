@@ -1,0 +1,29 @@
+/*
+ * Design tokens from docs/design/homepage.html, shared by app.css and editor.css.
+ *
+ * `static` keeps every token in the output, because the Customizer overrides
+ * --color-accent at runtime and the derived shades must always exist.
+ */
+@theme static {
+	--font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+	--font-serif: "Alegreya", Georgia, ui-serif, serif;
+
+	--color-ink: #17231c;
+	--color-ink-soft: #36433b;
+	--color-muted: #5c6a61;
+	--color-placeholder: #6b776f;
+	--color-line: #dce3da;
+	--color-line-strong: #c3cdc2;
+	--color-field: #8a978d;
+	--color-footer-line: #d3dcd2;
+	--color-canvas: #edf1eb;
+	--color-surface-soft: #f5f7f4;
+
+	/* Season color. inc/customizer.php overrides --color-accent; the shades follow. */
+	--color-accent: #1e5b3a;
+	--color-accent-strong: color-mix(in srgb, var(--color-accent) 80%, black);
+	--color-accent-soft: color-mix(in srgb, var(--color-accent) 8%, white);
+	--color-accent-tint: color-mix(in srgb, var(--color-accent) 18%, white);
+
+	--container-site: 80rem;
+}
