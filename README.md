@@ -69,7 +69,27 @@ The `lampandpath-core` plugin owns the content; the theme only renders it (via t
 | Collections | Posts > Collections | Icon, verse reference and link, order |
 | Writers | Users > Profile | Role title and avatar color; admins choose who appears in the About section |
 | Homepage headings, intros, button labels and links | Appearance > Customize > Homepage | Each section can be hidden. The featured article is the latest sticky post (or the latest post). |
-| Homepage filter chips and topics | Appearance > Menus | Menus in the "Homepage: article filter chips" and "Homepage: browse by topic" locations |
+| Homepage filter chips and topics | Appearance > Menus | Menus in the "Homepage: article filter chips" and "Homepage: browse by topic" locations. The filter chips also appear on the Articles page and article archives. |
+| Articles page intro | Pages > Articles | The page's content is shown under its title (the site tagline when empty) |
+| Our writers and Prayer wall pages | Pages, "Template" setting | The "Our writers" and "Prayer wall" templates; the seed sets them on the seeded pages. The page content is the intro. |
+
+Comments are switched off site-wide by `lampandpath-core` (`includes/comments.php`): no comment forms or pingbacks, earlier comments hidden from pages, feeds and the REST API, and no Comments screens in wp-admin. Block editor notes (editors' comments on blocks) still work. The prayer wall is where readers respond.
+
+## Inner pages
+
+Only the homepage has a design; the other templates reuse its tokens and components.
+
+| URL | Template |
+|---|---|
+| An article | `single.php`: header like the homepage featured article (portrait images in the arched frame, landscape ones in a rounded 3:2 frame), content, topics and collections, author box, newsletter card, "Keep reading" |
+| `/articles/`, categories, topics, dates | `home.php`, `archive.php`: filter chips, article cards and the "More to read" sidebar |
+| `/author/<name>/` | `author.php`: writer profile and articles |
+| `/collections/<name>/` | `taxonomy-lp_need.php`: icon, description, verse link, the other collections |
+| `/reading-plans/` and a plan | `archive-lp_plan.php`, `single-lp_plan.php`: plan cards; overview and a Bible Gateway link per day |
+| `/verses/` and a verse | `archive-lp_verse.php`, `single-lp_verse.php`: past verses; a verse page for shared links |
+| Search, missing pages, other pages | `search.php`, `404.php`, `page.php` |
+
+Lists page with numbered links, and `assets/js/feed.js` turns them into a "Load more" button that loads the next page in place.
 
 ## Forms and interactions
 
@@ -84,14 +104,20 @@ The prayer request and newsletter forms, "I prayed" and the article view counter
 
 ## Theme development
 
-The theme uses [Tailwind CSS v4](https://tailwindcss.com). Styles are written in `src/css/app.css` and built to `assets/css/app.css`, which is committed because the production host has no Node.
+The theme uses [Tailwind CSS v4](https://tailwindcss.com). Styles are written in `src/css/` and built to `assets/css/`, which is committed because the production host has no Node:
+
+- `app.css`: the front end
+- `editor.css`: the block editor canvas, so articles look the same while editing
+- `tokens.css` (design tokens) and `content.css` (article and page body copy) are shared by both
 
 ```bash
 cd wp-content/themes/lampandpath
 pnpm install
-pnpm dev     # rebuild on every change
-pnpm build   # minified build; run before committing
+pnpm dev     # rebuild app.css on every change
+pnpm build   # minified build of both files; run before committing
 ```
+
+The block editor offers the design's colors (the Season color entries follow the Customizer) and type sizes only.
 
 Tailwind finds class names by scanning the theme's PHP and JS files, so always write complete class strings (never build them like `'bg-' . $color`).
 

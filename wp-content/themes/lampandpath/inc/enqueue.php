@@ -115,3 +115,24 @@ function lampandpath_resource_hints( $urls, $relation_type ) {
 	return $urls;
 }
 add_filter( 'wp_resource_hints', 'lampandpath_resource_hints', 10, 2 );
+
+/**
+ * Enqueues the "Load more" script on paged listings (assets/js/feed.js).
+ */
+function lampandpath_feed_script() {
+	if ( ! ( is_home() || is_archive() || is_search() || is_page_template( 'page-templates/prayer-wall.php' ) ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'lampandpath-feed',
+		get_theme_file_uri( 'assets/js/feed.js' ),
+		array(),
+		lampandpath_asset_version( 'assets/js/feed.js' ),
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+}
+add_action( 'wp_enqueue_scripts', 'lampandpath_feed_script' );

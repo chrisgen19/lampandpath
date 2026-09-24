@@ -35,6 +35,14 @@ function lampandpath_icons() {
 			'stroke' => '2',
 			'paths'  => '<path d="M6 6l12 12M18 6L6 18"/>',
 		),
+		'previous'  => array(
+			'stroke' => '2',
+			'paths'  => '<path d="M14.5 6l-6 6 6 6"/>',
+		),
+		'next'      => array(
+			'stroke' => '2',
+			'paths'  => '<path d="M9.5 6l6 6-6 6"/>',
+		),
 		'clock'     => array(
 			'stroke' => '2',
 			'paths'  => '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',

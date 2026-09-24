@@ -151,7 +151,7 @@ class Lampandpath_Seed_Content {
 			$id = (int) $result['term_id'];
 			update_term_meta( $id, 'lp_icon', $need['icon'] );
 			update_term_meta( $id, 'lp_verse_ref', $need['verse'] );
-			update_term_meta( $id, 'lp_verse_url', $this->bible_url( $need['verse'] ) );
+			update_term_meta( $id, 'lp_verse_url', lampandpath_get_bible_url( $need['verse'] ) );
 			update_term_meta( $id, 'lp_order', $order );
 			$this->needs[ $slug ] = $id;
 			++$created;
@@ -254,7 +254,7 @@ class Lampandpath_Seed_Content {
 					'post_name'    => $post['slug'],
 					'post_title'   => $post['title'],
 					'post_excerpt' => $post['excerpt'],
-					'post_content' => $this->article_body( $post['excerpt'] ),
+					'post_content' => $this->article_body(),
 					'post_author'  => $this->writers[ $post['author'] ] ?? 0,
 					'post_date'    => $this->local_date( '-' . $post['days_ago'] . ' days', '08:00' ),
 				)
@@ -312,7 +312,7 @@ class Lampandpath_Seed_Content {
 
 			update_post_meta( $id, 'lp_translation', 'King James Version' );
 			update_post_meta( $id, 'lp_reflection', $verse['reflection'] );
-			update_post_meta( $id, 'lp_chapter_url', $this->bible_url( $verse['chapter'] ) );
+			update_post_meta( $id, 'lp_chapter_url', lampandpath_get_bible_url( $verse['chapter'] ) );
 			++$ready;
 			++$created;
 		}
@@ -433,14 +433,14 @@ class Lampandpath_Seed_Content {
 	}
 
 	/**
-	 * Returns the body copy for a demo article: its excerpt plus sample formatting.
+	 * Returns the body copy for a demo article: placeholder text with sample formatting.
 	 *
-	 * @param string $excerpt Article excerpt, used as the lead paragraph.
+	 * The excerpt is not repeated, because the article template shows it under the title.
+	 *
 	 * @return string Block markup.
 	 */
-	private function article_body( $excerpt ) {
+	private function article_body() {
 		$blocks = array(
-			'<!-- wp:paragraph --><p>' . esc_html( $excerpt ) . '</p><!-- /wp:paragraph -->',
 			'<!-- wp:paragraph --><p>' . esc_html__( 'This article is placeholder copy for the Lamp & Path demo site. The final text will replace it.', 'lampandpath-core' ) . '</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2 class="wp-block-heading">' . esc_html__( 'A place to begin', 'lampandpath-core' ) . '</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>' . esc_html__( 'Articles can mix paragraphs, headings, quotes and lists. This sample shows how each one looks in the theme.', 'lampandpath-core' ) . '</p><!-- /wp:paragraph -->',
@@ -530,25 +530,6 @@ class Lampandpath_Seed_Content {
 		}
 
 		return $ids;
-	}
-
-	/**
-	 * Returns a Bible Gateway (KJV) link for a reference or chapter.
-	 *
-	 * @param string $reference E.g. "Psalm 34:18" or "Lamentations 3".
-	 * @return string
-	 */
-	private function bible_url( $reference ) {
-		// Bible Gateway expects a plain hyphen in verse ranges.
-		$search = str_replace( "\u{2013}", '-', $reference );
-
-		return add_query_arg(
-			array(
-				'search'  => rawurlencode( $search ),
-				'version' => 'KJV',
-			),
-			'https://www.biblegateway.com/passage/'
-		);
 	}
 
 	/**

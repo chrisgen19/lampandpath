@@ -372,6 +372,12 @@
 		}
 	} );
 
+	// Items appended by "Load more" on archives and the prayer wall (feed.js) get their pressed states too.
+	document.addEventListener( 'lampandpath:feed', () => {
+		syncSaved();
+		syncPrayed();
+	} );
+
 	syncSaved();
 	syncPrayed();
 	countView();

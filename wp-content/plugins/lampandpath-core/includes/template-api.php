@@ -163,17 +163,51 @@ function lampandpath_get_featured_plans( $limit = 3 ) {
 }
 
 /**
- * Returns approved prayer requests whose authors agreed to show them on the wall.
+ * Returns the latest approved prayer requests whose authors agreed to show them on the wall.
  *
  * @param int $limit Number of requests.
  * @return WP_Post[]
  */
 function lampandpath_get_prayer_wall( $limit = 3 ) {
-	return get_posts(
+	return lampandpath_query_prayer_wall(
+		array(
+			'posts_per_page' => $limit,
+			'no_found_rows'  => true,
+		)
+	)->posts;
+}
+
+/**
+ * Queries the prayer wall: approved requests whose authors agreed to show them, newest first.
+ *
+ * Returns the query rather than posts so the Prayer wall page can paginate it.
+ *
+ * @param array $args {
+ *     Optional.
+ *
+ *     @type int  $posts_per_page Requests per page. Default 10.
+ *     @type int  $paged          Page number. Default 1.
+ *     @type bool $no_found_rows  Skip counting the total, when there is no pagination. Default false.
+ * }
+ * @return WP_Query
+ */
+function lampandpath_query_prayer_wall( $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'posts_per_page' => 10,
+			'paged'          => 1,
+			'no_found_rows'  => false,
+		)
+	);
+
+	return new WP_Query(
 		array(
 			'post_type'      => 'lp_prayer',
 			'post_status'    => 'publish',
-			'posts_per_page' => $limit,
+			'posts_per_page' => (int) $args['posts_per_page'],
+			'paged'          => max( 1, (int) $args['paged'] ),
+			'no_found_rows'  => (bool) $args['no_found_rows'],
 			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				array(
 					'key'   => 'lp_wall_consent',
@@ -207,6 +241,56 @@ function lampandpath_get_team() {
 	);
 
 	return $users;
+}
+
+/**
+ * Returns the writers for the "Our writers" page.
+ *
+ * The About section team comes first, in their About order, followed by
+ * everyone else who has published an article, by name.
+ *
+ * @return WP_User[]
+ */
+function lampandpath_get_writers() {
+	$writers = lampandpath_get_team();
+	$listed  = wp_list_pluck( $writers, 'ID' );
+	$authors = get_users(
+		array(
+			'has_published_posts' => array( 'post' ),
+			'orderby'             => 'display_name',
+		)
+	);
+
+	foreach ( $authors as $author ) {
+		if ( ! in_array( $author->ID, $listed, true ) ) {
+			$writers[] = $author;
+		}
+	}
+
+	return $writers;
+}
+
+/**
+ * Returns a Bible Gateway link for a passage, e.g. "Mark 1" or "Psalm 34:18".
+ *
+ * The version defaults to the King James Version, the translation the site
+ * quotes; change it with the lampandpath_bible_version filter.
+ *
+ * @param string $reference Bible reference.
+ * @return string
+ */
+function lampandpath_get_bible_url( $reference ) {
+	// Bible Gateway expects a plain hyphen in verse ranges.
+	$search  = str_replace( "\u{2013}", '-', $reference );
+	$version = (string) apply_filters( 'lampandpath_bible_version', 'KJV' );
+
+	return add_query_arg(
+		array(
+			'search'  => rawurlencode( $search ),
+			'version' => rawurlencode( $version ),
+		),
+		'https://www.biblegateway.com/passage/'
+	);
 }
 
 /**

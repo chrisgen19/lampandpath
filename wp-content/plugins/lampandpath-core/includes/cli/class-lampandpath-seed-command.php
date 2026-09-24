@@ -67,6 +67,14 @@ class Lampandpath_Seed_Command {
 	);
 
 	/**
+	 * Theme page templates for seeded pages, keyed by page slug.
+	 */
+	private const PAGE_TEMPLATES = array(
+		'writers'     => 'page-templates/writers.php',
+		'prayer-wall' => 'page-templates/prayer-wall.php',
+	);
+
+	/**
 	 * Body copy for new pages until the final copy is written.
 	 */
 	private const PLACEHOLDER = '<!-- wp:paragraph --><p>This page is a placeholder. Replace it with the final copy.</p><!-- /wp:paragraph -->';
@@ -183,11 +191,29 @@ class Lampandpath_Seed_Command {
 			$id = $this->seed_page( $slug, $title );
 			if ( $id ) {
 				$ids[ $slug ] = $id;
+				$this->seed_page_template( $id, $slug );
 			}
 		}
 
 		WP_CLI::log( sprintf( 'Pages: %d of %d ready.', count( $ids ), count( self::PAGES ) ) );
 		return $ids;
+	}
+
+	/**
+	 * Gives a seeded page its theme template (e.g. "Our writers") if it has never had one.
+	 *
+	 * A template chosen in the editor, including "Default template", is kept.
+	 *
+	 * @param int    $page_id Page ID.
+	 * @param string $slug    Page slug.
+	 */
+	private function seed_page_template( $page_id, $slug ) {
+		if ( empty( self::PAGE_TEMPLATES[ $slug ] ) || metadata_exists( 'post', $page_id, '_wp_page_template' ) ) {
+			return;
+		}
+
+		update_post_meta( $page_id, '_wp_page_template', self::PAGE_TEMPLATES[ $slug ] );
+		WP_CLI::log( sprintf( 'Page "%s": template %s.', $slug, self::PAGE_TEMPLATES[ $slug ] ) );
 	}
 
 	/**

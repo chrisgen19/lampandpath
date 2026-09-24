@@ -19,6 +19,7 @@ define( 'LAMPANDPATH_CORE_VERSION', '0.3.0' );
 define( 'LAMPANDPATH_CORE_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once LAMPANDPATH_CORE_DIR . 'includes/post-types.php';
+require_once LAMPANDPATH_CORE_DIR . 'includes/comments.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/meta.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/articles.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/template-api.php';

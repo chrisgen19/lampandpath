@@ -1,0 +1,36 @@
+/*
+ * Block editor styles (loaded with add_editor_style() in inc/editor.php).
+ *
+ * Build: `pnpm build`. Output: assets/css/editor.css. The canvas gets the same
+ * tokens and body copy as the front end (tokens.css, content.css); only the
+ * title and the content width are editor specific. No preflight and no
+ * scanned utilities, so the editor's own UI is left alone.
+ *
+ * WordPress rewrites `body` and `:root` to `.editor-styles-wrapper` and
+ * prefixes other selectors with it. The build is always minified because
+ * that flattens CSS nesting, which the prefixing does not understand.
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "./tokens.css";
+@import "./content.css";
+@plugin "@tailwindcss/typography";
+
+body {
+	background-color: #fff;
+}
+
+/* Matches the single article title (single.php). */
+.editor-styles-wrapper .editor-post-title {
+	font-family: var(--font-serif);
+	font-size: 3.25rem;
+	font-weight: 600;
+	line-height: 1.06;
+	letter-spacing: -0.015em;
+	color: var(--color-ink);
+}
+
+/* The article column on the front end is 720px wide. */
+.editor-styles-wrapper .wp-block {
+	max-width: 720px;
+}
