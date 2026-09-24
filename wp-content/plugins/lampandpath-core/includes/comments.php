@@ -2,8 +2,8 @@
 /**
  * Comments are switched off site-wide (issue #1, open question 2).
  *
- * No content accepts comments or pingbacks, existing comments stay hidden,
- * and the Comments screens leave wp-admin. The prayer wall is the site's
+ * No content accepts comments or pingbacks, existing comments stay hidden
+ * (in templates, feeds and the REST API), and the Comments screens leave wp-admin. The prayer wall is the site's
  * place for readers to respond. Remove this file's require in
  * lampandpath-core.php to turn comments back on.
  *
@@ -32,6 +32,45 @@ add_filter( 'pings_open', '__return_false', 20 );
 add_filter( 'comments_array', '__return_empty_array', 20 );
 add_filter( 'get_comments_number', '__return_zero', 20 );
 add_filter( 'feed_links_show_comments_feed', '__return_false' );
+
+/**
+ * Answers comment feeds (/comments/feed/ and each article's /feed/) with a 404,
+ * so earlier comments are not served there either.
+ */
+function lampandpath_core_block_comment_feeds() {
+	if ( is_comment_feed() ) {
+		wp_die( esc_html__( 'Comments are switched off on this site.', 'lampandpath-core' ), '', array( 'response' => 404 ) );
+	}
+}
+add_action( 'template_redirect', 'lampandpath_core_block_comment_feeds', 1 );
+
+/**
+ * Answers REST API requests for comments with a 404, except block editor notes.
+ *
+ * Notes (editors' comments on blocks) are stored as comments of type "note"
+ * and use the same /wp/v2/comments routes, so the routes stay and core's own
+ * permission checks still apply to notes.
+ *
+ * @param WP_REST_Response|WP_Error|mixed $response Result so far; usually empty.
+ * @param array                           $handler  Route handler (unused).
+ * @param WP_REST_Request                 $request  Request.
+ * @return WP_REST_Response|WP_Error|mixed
+ */
+function lampandpath_core_block_rest_comments( $response, $handler, $request ) {
+	if ( 0 !== strpos( $request->get_route(), '/wp/v2/comments' ) ) {
+		return $response;
+	}
+
+	// A single comment's type comes from the comment; a list's from the "type" parameter (default "comment").
+	$comment = $request['id'] ? get_comment( (int) $request['id'] ) : null;
+	$type    = $comment ? $comment->comment_type : $request['type'];
+	if ( 'note' === $type || ( $request['id'] && ! $comment ) ) {
+		return $response;
+	}
+
+	return new WP_Error( 'rest_comments_disabled', __( 'Comments are switched off on this site.', 'lampandpath-core' ), array( 'status' => 404 ) );
+}
+add_filter( 'rest_request_before_callbacks', 'lampandpath_core_block_rest_comments', 10, 3 );
 
 /**
  * Removes the Comments menu from wp-admin.

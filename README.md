@@ -73,7 +73,7 @@ The `lampandpath-core` plugin owns the content; the theme only renders it (via t
 | Articles page intro | Pages > Articles | The page's content is shown under its title (the site tagline when empty) |
 | Our writers and Prayer wall pages | Pages, "Template" setting | The "Our writers" and "Prayer wall" templates; the seed sets them on the seeded pages. The page content is the intro. |
 
-Comments are switched off site-wide by `lampandpath-core` (`includes/comments.php`): no comment forms or pingbacks, and no Comments screens in wp-admin. The prayer wall is where readers respond.
+Comments are switched off site-wide by `lampandpath-core` (`includes/comments.php`): no comment forms or pingbacks, earlier comments hidden from pages, feeds and the REST API, and no Comments screens in wp-admin. Block editor notes (editors' comments on blocks) still work. The prayer wall is where readers respond.
 
 ## Inner pages
 
