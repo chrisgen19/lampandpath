@@ -74,8 +74,9 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Seeds site settings, terms, pages, demo content and menus from the homepage design.
 	 *
-	 * Every run resets the site title, tagline, permalink structure and reading
-	 * settings to the design's values. Everything else is reused and never
+	 * Every run resets the site title, tagline, permalink structure, reading
+	 * settings (front page and posts page) and privacy policy page to the
+	 * design's values. Everything else is reused and never
 	 * overwritten, so the command is safe to run repeatedly. Menus only fill empty
 	 * menu locations unless --reset-menus is passed, so menus assigned or edited
 	 * in wp-admin are left alone.
