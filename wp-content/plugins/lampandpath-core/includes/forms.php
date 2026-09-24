@@ -64,7 +64,37 @@ function lampandpath_core_client_ip() {
 }
 
 /**
+ * Runs a callback while holding a named database lock, so concurrent requests take turns.
+ *
+ * Uses MySQL/MariaDB GET_LOCK, which needs no special privileges. The lock name
+ * includes the database and table prefix, so sites sharing a database server
+ * never block each other.
+ *
+ * @param string   $name     What to lock, e.g. a rate-limit key.
+ * @param callable $callback Work to do while holding the lock.
+ * @param int      $timeout  Seconds to wait for the lock.
+ * @return mixed|WP_Error The callback's return value, or an error when the lock was not obtained in time.
+ */
+function lampandpath_core_with_lock( $name, callable $callback, $timeout = 5 ) {
+	global $wpdb;
+
+	$lock = 'lp_' . md5( DB_NAME . $wpdb->prefix . $name );
+	if ( 1 !== (int) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK( %s, %d )', $lock, $timeout ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return lampandpath_core_form_error( 'error', 503 );
+	}
+
+	try {
+		return $callback();
+	} finally {
+		$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK( %s )', $lock ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+}
+
+/**
  * Counts one attempt for this visitor and reports whether they are over the limit.
+ *
+ * The check and the count happen under a lock, so parallel requests cannot all
+ * read the same count and slip past the limit together.
  *
  * @param string $bucket What is being limited, e.g. "prayer".
  * @param int    $limit  Allowed attempts per window.
@@ -81,25 +111,41 @@ function lampandpath_core_rate_limited( $bucket, $limit, $window = HOUR_IN_SECON
 	$limit   = (int) apply_filters( 'lampandpath_rate_limit', $limit, $bucket );
 	$visitor = substr( hash_hmac( 'sha256', lampandpath_core_client_ip(), wp_salt( 'nonce' ) ), 0, 20 );
 	$key     = 'lp_rl_' . $bucket . '_' . $visitor;
-	$count   = (int) get_transient( $key );
 
-	if ( $count >= $limit ) {
-		return true;
-	}
+	$over = lampandpath_core_with_lock(
+		$key,
+		static function () use ( $key, $limit, $window ) {
+			$count = (int) get_transient( $key );
+			if ( $count >= $limit ) {
+				return true;
+			}
+			set_transient( $key, $count + 1, $window );
+			return false;
+		}
+	);
 
-	set_transient( $key, $count + 1, $window );
-	return false;
+	// Fail closed: if the lock could not be taken, treat the visitor as over the limit.
+	return is_wp_error( $over ) || $over;
 }
 
 /**
  * Checks the honeypot and time trap fields that every public form sends.
  *
- * @param array $input Submitted fields: "website" (honeypot, must be empty) and "lp_started" (Unix time the form was shown).
+ * With JavaScript the browser reports how long the form was open (lp_elapsed,
+ * in milliseconds), which stays accurate when the page came from a full-page
+ * cache. Without JavaScript the check falls back to the time the page was
+ * generated (lp_started), which is only meaningful on uncached pages.
+ *
+ * @param array $input Submitted fields: "website" (honeypot, must be empty), "lp_elapsed" and "lp_started".
  * @return bool True when the submission looks automated.
  */
 function lampandpath_core_is_spam( array $input ) {
 	if ( ! empty( $input['website'] ) ) {
 		return true;
+	}
+
+	if ( isset( $input['lp_elapsed'] ) && '' !== $input['lp_elapsed'] ) {
+		return (int) $input['lp_elapsed'] < 3000;
 	}
 
 	$started = isset( $input['lp_started'] ) ? (int) $input['lp_started'] : 0;
@@ -203,6 +249,37 @@ function lampandpath_core_subscribe( array $input ) {
 		return lampandpath_core_form_error( 'invalid_email', 400 );
 	}
 
+	// The lookup and insert run under a per-email lock, so parallel signups cannot both create a subscriber.
+	$id = lampandpath_core_with_lock(
+		'subscriber_' . $email,
+		static function () use ( $email ) {
+			return lampandpath_core_insert_subscriber( $email );
+		}
+	);
+	if ( is_wp_error( $id ) || ! $id ) {
+		return $id;
+	}
+
+	/**
+	 * Fires after a new newsletter subscriber is saved, e.g. to send them to a mailing provider.
+	 *
+	 * Runs once per email, outside the lock, so a slow provider call does not hold up other signups.
+	 *
+	 * @param string $email Subscriber email.
+	 * @param int    $id    Subscriber post ID.
+	 */
+	do_action( 'lampandpath_newsletter_subscribed', $email, $id );
+
+	return $id;
+}
+
+/**
+ * Saves a subscriber unless the email is already subscribed. Call it under the email's lock.
+ *
+ * @param string $email Sanitized, lowercased email.
+ * @return int|WP_Error New subscriber ID, 0 when the email already exists, or an error.
+ */
+function lampandpath_core_insert_subscriber( $email ) {
 	$existing = get_posts(
 		array(
 			'post_type'   => 'lp_subscriber',
@@ -224,19 +301,8 @@ function lampandpath_core_subscribe( array $input ) {
 		),
 		true
 	);
-	if ( is_wp_error( $id ) ) {
-		return lampandpath_core_form_error( 'error', 500 );
-	}
 
-	/**
-	 * Fires after a new newsletter subscriber is saved, e.g. to send them to a mailing provider.
-	 *
-	 * @param string $email Subscriber email.
-	 * @param int    $id    Subscriber post ID.
-	 */
-	do_action( 'lampandpath_newsletter_subscribed', $email, $id );
-
-	return $id;
+	return is_wp_error( $id ) ? lampandpath_core_form_error( 'error', 500 ) : (int) $id;
 }
 
 /**
@@ -275,9 +341,13 @@ function lampandpath_core_result_code( $result, $success ) {
  * @param string $fragment Anchor to return to, e.g. "prayer".
  */
 function lampandpath_core_handle_form_post( $form, $fragment ) {
-	$nonce  = isset( $_POST[ 'lampandpath_' . $form . '_nonce' ] ) ? sanitize_key( wp_unslash( $_POST[ 'lampandpath_' . $form . '_nonce' ] ) ) : '';
-	$input  = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each field is sanitized by the form function.
-	$result = ! wp_verify_nonce( $nonce, 'lampandpath_' . $form )
+	$nonce = isset( $_POST[ 'lampandpath_' . $form . '_nonce' ] ) ? sanitize_key( wp_unslash( $_POST[ 'lampandpath_' . $form . '_nonce' ] ) ) : '';
+	$input = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each field is sanitized by the form function.
+	// The nonce is only checked for logged-in users, the only visitors a forged cross-site
+	// submission could act for; their pages also bypass full-page caches. Logged-out visitors
+	// all share one public nonce, which protects nothing and would go stale inside cached pages.
+	$valid  = ! is_user_logged_in() || wp_verify_nonce( $nonce, 'lampandpath_' . $form );
+	$result = ! $valid
 		? lampandpath_core_form_error( 'expired', 403 )
 		: ( 'prayer' === $form ? lampandpath_core_submit_prayer( $input ) : lampandpath_core_subscribe( $input ) );
 

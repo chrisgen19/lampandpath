@@ -11,6 +11,8 @@
 	const config = window.lampandpath || {};
 	const strings = config.strings || {};
 	const live = document.getElementById( 'lp-live' );
+	// For the spam time trap: measured in the browser, so it stays accurate when the page came from a cache.
+	const loadedAt = performance.now();
 
 	const format = ( template, value ) => String( template ).replace( /%[sd]/, value );
 
@@ -273,6 +275,7 @@
 		const status = form.querySelector( '[data-lp-form-status]' );
 		const button = form.querySelector( '[type="submit"]' );
 		const data = Object.fromEntries( new FormData( form ) );
+		data.lp_elapsed = Math.round( performance.now() - loadedAt );
 		if ( form.elements.wall_consent ) {
 			data.wall_consent = form.elements.wall_consent.checked;
 		}

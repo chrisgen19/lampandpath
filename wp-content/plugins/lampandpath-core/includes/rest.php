@@ -32,6 +32,11 @@ function lampandpath_core_register_rest_routes() {
 			'type'    => 'integer',
 			'default' => 0,
 		),
+		// Milliseconds the form was open, measured in the browser (no default: absent means "not sent").
+		'lp_elapsed' => array(
+			'type'    => 'integer',
+			'minimum' => 0,
+		),
 	);
 
 	register_rest_route(
