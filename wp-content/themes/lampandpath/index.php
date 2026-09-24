@@ -43,7 +43,15 @@ get_header();
 
 			<?php the_posts_pagination( array( 'class' => 'pagination mt-12' ) ); ?>
 		<?php else : ?>
-			<p class="mt-6 text-[19px] leading-[30px] text-ink-soft"><?php esc_html_e( 'Nothing found. Try a different search.', 'lampandpath' ); ?></p>
+			<p class="mt-6 text-[19px] leading-[30px] text-ink-soft">
+				<?php
+				if ( is_404() ) {
+					esc_html_e( 'We couldn’t find that page. It may have moved, or the link may be wrong. Try a search instead.', 'lampandpath' );
+				} else {
+					esc_html_e( 'Nothing found. Try a different search.', 'lampandpath' );
+				}
+				?>
+			</p>
 			<div class="mt-6 max-w-xl"><?php get_search_form(); ?></div>
 		<?php endif; ?>
 	</div>

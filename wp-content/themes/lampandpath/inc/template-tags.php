@@ -146,6 +146,10 @@ function lampandpath_copyright_text() {
  * @return string
  */
 function lampandpath_listing_title() {
+	if ( is_404() ) {
+		return __( 'Page not found', 'lampandpath' );
+	}
+
 	if ( is_search() ) {
 		/* translators: %s: search query. */
 		return sprintf( __( 'Search results for "%s"', 'lampandpath' ), get_search_query( false ) );
