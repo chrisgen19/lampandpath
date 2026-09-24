@@ -4,6 +4,10 @@
 !/.gitignore
 !/.ddev/
 !/README.md
+# PHP coding standards tooling (vendor/ stays ignored)
+!/composer.json
+!/composer.lock
+!/phpcs.xml.dist
 !/docs/
 !/wp-content/
 
