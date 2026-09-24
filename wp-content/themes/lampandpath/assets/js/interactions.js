@@ -181,7 +181,24 @@
 
 	const list = document.querySelector( '[data-lp-articles]' );
 	const more = document.querySelector( '[data-lp-load-more]' );
-	const listState = { category: 0, page: 1 };
+	// request numbers each list request; only the newest one may update the page, so a slow
+	// earlier response can never overwrite a later choice. busy blocks Load more meanwhile.
+	const listState = { category: 0, page: 1, request: 0, busy: false };
+
+	const startRequest = () => {
+		listState.busy = true;
+		list.setAttribute( 'aria-busy', 'true' );
+		return ++listState.request;
+	};
+
+	const isCurrent = ( request ) => request === listState.request;
+
+	const endRequest = ( request ) => {
+		if ( isCurrent( request ) ) {
+			listState.busy = false;
+			list.removeAttribute( 'aria-busy' );
+		}
+	};
 
 	const fetchArticles = ( category, page ) => api( 'articles', {
 		query: {
@@ -206,9 +223,12 @@
 		}
 		event.preventDefault();
 		const category = Number( link.dataset.lpFilter );
-		list.setAttribute( 'aria-busy', 'true' );
+		const request = startRequest();
 		try {
 			const data = await fetchArticles( category, 1 );
+			if ( ! isCurrent( request ) ) {
+				return; // A newer filter or Load more request has taken over.
+			}
 			Object.assign( listState, { category, page: 1 } );
 			list.innerHTML = data.html;
 			if ( ! data.count ) {
@@ -221,9 +241,11 @@
 			}
 			announce( category ? format( strings.filtered, link.textContent.trim() ) : strings.filteredAll );
 		} catch {
-			window.location.href = link.href;
+			if ( isCurrent( request ) ) {
+				window.location.href = link.href;
+			}
 		} finally {
-			list.removeAttribute( 'aria-busy' );
+			endRequest( request );
 		}
 	};
 
@@ -233,9 +255,15 @@
 			return;
 		}
 		event.preventDefault();
-		list.setAttribute( 'aria-busy', 'true' );
+		if ( listState.busy ) {
+			return; // A second click while loading would fetch the same page twice.
+		}
+		const request = startRequest();
 		try {
 			const data = await fetchArticles( listState.category, listState.page + 1 );
+			if ( ! isCurrent( request ) ) {
+				return; // A filter was chosen while this page was loading.
+			}
 			listState.page += 1;
 			const firstNew = list.children.length;
 			list.insertAdjacentHTML( 'beforeend', data.html );
@@ -243,9 +271,11 @@
 			link.hidden = ! data.has_more;
 			announce( format( strings.loaded, data.count ) );
 		} catch {
-			window.location.href = link.href;
+			if ( isCurrent( request ) ) {
+				window.location.href = link.href;
+			}
 		} finally {
-			list.removeAttribute( 'aria-busy' );
+			endRequest( request );
 		}
 	};
 
