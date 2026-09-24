@@ -23,7 +23,16 @@ $lampandpath_message = ( $lampandpath_result && function_exists( 'lampandpath_co
 	<input type="hidden" name="lp_started" value="<?php echo esc_attr( time() ); ?>">
 	<?php wp_nonce_field( 'lampandpath_prayer', 'lampandpath_prayer_nonce' ); ?>
 
-	<?php get_template_part( 'template-parts/components/form-status', null, array( 'message' => $lampandpath_message, 'success' => 'prayer_sent' === $lampandpath_result ) ); ?>
+	<?php
+	get_template_part(
+		'template-parts/components/form-status',
+		null,
+		array(
+			'message' => $lampandpath_message,
+			'success' => 'prayer_sent' === $lampandpath_result,
+		)
+	);
+	?>
 
 	<?php // display: contents keeps the fieldset out of the layout; disabling it disables every field and the button. ?>
 	<fieldset class="contents"<?php disabled( ! $lampandpath_ready ); ?>>

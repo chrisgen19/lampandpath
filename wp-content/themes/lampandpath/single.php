@@ -54,7 +54,15 @@ get_header();
 					<div class="mt-8 flex flex-wrap gap-3">
 						<?php // A toggle: pressed means saved, and the bookmark fills in. ?>
 						<button type="button" data-lp-save="<?php the_ID(); ?>" aria-pressed="false" class="group <?php echo esc_attr( $lampandpath_outline ); ?> aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent">
-							<?php lampandpath_icon( 'bookmark', array( 'size' => 18, 'class' => 'group-aria-pressed:fill-current' ) ); ?>
+							<?php
+							lampandpath_icon(
+								'bookmark',
+								array(
+									'size'  => 18,
+									'class' => 'group-aria-pressed:fill-current',
+								)
+							);
+							?>
 							<?php echo esc_html( lampandpath_home_option( 'hero', 'save_label' ) ); ?>
 						</button>
 						<button type="button" data-lp-share="<?php echo esc_attr( wp_strip_all_tags( get_the_title() ) ); ?>" data-lp-share-url="<?php the_permalink(); ?>" class="<?php echo esc_attr( $lampandpath_outline ); ?>">

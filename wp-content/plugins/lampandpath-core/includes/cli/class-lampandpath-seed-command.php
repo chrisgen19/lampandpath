@@ -389,7 +389,7 @@ class Lampandpath_Seed_Command {
 	 */
 	private function menu_definitions() {
 		return array(
-			'Main'      => array(
+			'Main'            => array(
 				'location' => 'primary',
 				'items'    => array(
 					array( 'page', 'articles', 'Articles' ),
@@ -400,7 +400,7 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'about', 'About' ),
 				),
 			),
-			'Read'      => array(
+			'Read'            => array(
 				'location' => 'footer-1',
 				'items'    => array(
 					array( 'page', 'articles', 'Latest articles' ),
@@ -410,7 +410,7 @@ class Lampandpath_Seed_Command {
 					array( 'category', 'prayer', 'Prayers' ),
 				),
 			),
-			'Community' => array(
+			'Community'       => array(
 				'location' => 'footer-2',
 				'items'    => array(
 					array( 'page', 'prayer-wall', 'Prayer wall' ),
@@ -420,7 +420,7 @@ class Lampandpath_Seed_Command {
 					array( 'custom', '/#newsletter', 'Newsletter' ),
 				),
 			),
-			'About'     => array(
+			'About'           => array(
 				'location' => 'footer-3',
 				'items'    => array(
 					array( 'page', 'about', 'Our story' ),
@@ -430,7 +430,7 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'contact', 'Contact us' ),
 				),
 			),
-			'Legal'     => array(
+			'Legal'           => array(
 				'location' => 'legal',
 				'items'    => array(
 					array( 'page', 'privacy-policy', 'Privacy policy' ),
@@ -448,7 +448,7 @@ class Lampandpath_Seed_Command {
 					array( 'category', 'christian-living', 'Christian living' ),
 				),
 			),
-			'Topics'    => array(
+			'Topics'          => array(
 				'location' => 'topics',
 				'items'    => array(
 					array( 'category', 'devotionals', 'Devotionals' ),

@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 return array(
 
 	// Illustrations rendered from the design, in seed/images/.
-	'images'   => array(
+	'images'  => array(
 		'when-god-feels-silent' => __( 'Sunrise over green hills and a winding path, seen through a window', 'lampandpath-core' ),
 		'rest-is-not-a-reward'  => __( 'A crescent moon and stars over calm water at night', 'lampandpath-core' ),
 		'raising-kids-who-pray' => __( 'A small house with warm lit windows among trees', 'lampandpath-core' ),
@@ -24,7 +24,7 @@ return array(
 	),
 
 	// Writers, keyed by login. "about" is the About section order (0 = not shown).
-	'writers'  => array(
+	'writers' => array(
 		'grace.villanueva' => array(
 			'first' => 'Grace',
 			'last'  => 'Villanueva',
@@ -82,26 +82,26 @@ return array(
 	),
 
 	// "Where are you today?" collections.
-	'needs'    => array(
-		'anxious'              => array(
+	'needs'   => array(
+		'anxious'               => array(
 			'name'  => 'I’m anxious',
 			'text'  => 'Peace for racing thoughts and restless nights.',
 			'verse' => 'Philippians 4:6–7',
 			'icon'  => 'waves',
 		),
-		'grieving'             => array(
+		'grieving'              => array(
 			'name'  => 'I’m grieving',
 			'text'  => 'Honest laments and the hope of resurrection.',
 			'verse' => 'Psalm 34:18',
 			'icon'  => 'candle',
 		),
-		'new-to-faith'         => array(
+		'new-to-faith'          => array(
 			'name'  => 'I’m new to faith',
 			'text'  => 'Who Jesus is and what it means to follow him.',
 			'verse' => 'John 3:16',
 			'icon'  => 'sprout',
 		),
-		'pray-more'            => array(
+		'pray-more'             => array(
 			'name'  => 'I want to pray more',
 			'text'  => 'Simple, practical ways to build a daily prayer life.',
 			'verse' => 'Mark 1:35',
@@ -113,7 +113,7 @@ return array(
 			'verse' => 'Colossians 3:13',
 			'icon'  => 'unlock',
 		),
-		'far-from-god'         => array(
+		'far-from-god'          => array(
 			'name'  => 'I feel far from God',
 			'text'  => 'For seasons of doubt, dryness, and waiting on God.',
 			'verse' => 'Psalm 13:1',
@@ -122,7 +122,7 @@ return array(
 	),
 
 	// Articles: the hero, the 5 latest articles and the 5 "Most read" articles.
-	'posts'    => array(
+	'posts'   => array(
 		array(
 			'slug'     => 'when-god-feels-silent',
 			'title'    => 'When God feels silent: learning to trust in the waiting',
@@ -265,7 +265,7 @@ return array(
 	),
 
 	// Verses of the day (King James Version, public domain). "day" is days from today.
-	'verses'   => array(
+	'verses'  => array(
 		array(
 			'slug'       => 'lamentations-3-22-23',
 			'title'      => 'Lamentations 3:22–23',
@@ -333,7 +333,7 @@ return array(
 	),
 
 	// Reading plans, in homepage order.
-	'plans'    => array(
+	'plans'   => array(
 		array(
 			'slug'     => 'the-gospel-of-mark',
 			'title'    => 'The Gospel of Mark',
@@ -364,7 +364,7 @@ return array(
 	),
 
 	// Prayer requests. Empty name = "Shared anonymously"; the pending one tests moderation.
-	'prayers'  => array(
+	'prayers' => array(
 		array(
 			'slug'      => 'seed-prayer-marisol',
 			'name'      => 'Marisol',

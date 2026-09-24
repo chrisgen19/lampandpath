@@ -34,7 +34,15 @@ function lampandpath_site_brand( $display = 'flex' ) {
 	?>
 	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="<?php echo esc_attr( $display ); ?> shrink-0 items-center gap-3 text-ink no-underline"
 		aria-label="<?php /* translators: %s: site title. */ echo esc_attr( sprintf( __( '%s, home', 'lampandpath' ), $name ) ); ?>">
-		<?php lampandpath_icon( 'lamp-mark', array( 'size' => 30, 'class' => 'text-accent' ) ); ?>
+		<?php
+		lampandpath_icon(
+			'lamp-mark',
+			array(
+				'size'  => 30,
+				'class' => 'text-accent',
+			)
+		);
+		?>
 		<span class="font-serif text-[27px] leading-none font-bold tracking-[-0.01em]"><?php echo esc_html( $name ); ?></span>
 	</a>
 	<?php

@@ -49,8 +49,24 @@ $lampandpath_subscribe_label = lampandpath_get_option( 'lampandpath_subscribe_la
 
 			<?php if ( $lampandpath_has_menu ) : ?>
 				<button type="button" data-lp-nav-toggle aria-controls="site-navigation" aria-expanded="false" class="group flex size-11 items-center justify-center rounded-full border border-line-strong bg-white text-ink hover:border-ink xl:hidden">
-					<?php lampandpath_icon( 'menu', array( 'size' => 20, 'class' => 'group-aria-expanded:hidden' ) ); ?>
-					<?php lampandpath_icon( 'close', array( 'size' => 20, 'class' => 'hidden group-aria-expanded:block' ) ); ?>
+					<?php
+					lampandpath_icon(
+						'menu',
+						array(
+							'size'  => 20,
+							'class' => 'group-aria-expanded:hidden',
+						)
+					);
+					?>
+					<?php
+					lampandpath_icon(
+						'close',
+						array(
+							'size'  => 20,
+							'class' => 'hidden group-aria-expanded:block',
+						)
+					);
+					?>
 					<span class="sr-only"><?php esc_html_e( 'Menu', 'lampandpath' ); ?></span>
 				</button>
 			<?php endif; ?>

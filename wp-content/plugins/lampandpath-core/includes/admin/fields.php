@@ -57,10 +57,10 @@ function lampandpath_core_render_input( $key, array $field, $value ) {
  * @param string                $name    Field name.
  * @param array<string, string> $options Value => label.
  * @param string                $value   Selected value.
- * @param string                $empty   Label of the empty option.
+ * @param string                $none    Label of the empty option.
  */
-function lampandpath_core_render_select( $id, $name, array $options, $value, $empty ) {
-	printf( '<select id="%1$s" name="%2$s"><option value="">%3$s</option>', esc_attr( $id ), esc_attr( $name ), esc_html( $empty ) );
+function lampandpath_core_render_select( $id, $name, array $options, $value, $none ) {
+	printf( '<select id="%1$s" name="%2$s"><option value="">%3$s</option>', esc_attr( $id ), esc_attr( $name ), esc_html( $none ) );
 	foreach ( $options as $option => $label ) {
 		printf( '<option value="%1$s"%2$s>%3$s</option>', esc_attr( $option ), selected( $value, $option, false ), esc_html( $label ) );
 	}

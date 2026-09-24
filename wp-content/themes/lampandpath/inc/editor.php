@@ -2,8 +2,9 @@
 /**
  * Block editor: styles, color palette and font sizes that match the front end.
  *
- * assets/css/editor.css is built from src/css/editor.css and shares the design
- * tokens and article typography with the front end (src/css/content.css).
+ * The editor stylesheet (assets/css/editor.css) is built from src/css/editor.css
+ * and shares the design tokens and article typography with the front end
+ * (src/css/content.css).
  *
  * @package Lampandpath
  */

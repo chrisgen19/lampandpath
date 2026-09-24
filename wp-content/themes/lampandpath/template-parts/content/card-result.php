@@ -7,7 +7,7 @@
  * @package Lampandpath
  */
 
-$lampandpath_type    = get_post_type_object( get_post_type() );
+$lampandpath_type = get_post_type_object( get_post_type() );
 // A verse's excerpt would run its verse numbers into the words, so verses show their plain text.
 $lampandpath_summary = 'lp_verse' === get_post_type() ? wp_trim_words( lampandpath_plain_verse( get_the_content() ), 40 ) : get_the_excerpt();
 ?>
