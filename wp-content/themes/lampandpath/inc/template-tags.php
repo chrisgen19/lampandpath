@@ -56,12 +56,18 @@ add_filter( 'get_custom_logo_image_attributes', 'lampandpath_custom_logo_attribu
 /**
  * Returns the Subscribe button URL, defaulting to the homepage newsletter form.
  *
+ * Returns an empty string when no custom link is set and the newsletter card is
+ * hidden on the homepage, because the default #newsletter target would not exist.
+ *
  * @return string
  */
 function lampandpath_subscribe_url() {
 	$url = lampandpath_get_option( 'lampandpath_subscribe_url' );
+	if ( $url ) {
+		return $url;
+	}
 
-	return $url ? $url : home_url( '/#newsletter' );
+	return lampandpath_home_show( 'newsletter' ) ? home_url( '/#newsletter' ) : '';
 }
 
 /**
@@ -102,7 +108,7 @@ function lampandpath_social_links() {
  * @param string $location Menu location, e.g. "footer-1".
  */
 function lampandpath_footer_menu_column( $location ) {
-	if ( ! has_nav_menu( $location ) ) {
+	if ( ! lampandpath_has_menu_items( $location ) ) {
 		return;
 	}
 

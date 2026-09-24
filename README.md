@@ -68,6 +68,8 @@ The `lampandpath-core` plugin owns the content; the theme only renders it (via t
 | Prayer requests | Prayer requests (editors and admins only) | Publishing approves a request; it only appears on the prayer wall if the person agreed |
 | Collections | Posts > Collections | Icon, verse reference and link, order |
 | Writers | Users > Profile | Role title and avatar color; admins choose who appears in the About section |
+| Homepage headings, intros, button labels and links | Appearance > Customize > Homepage | Each section can be hidden. The featured article is the latest sticky post (or the latest post). |
+| Homepage filter chips and topics | Appearance > Menus | Menus in the "Homepage: article filter chips" and "Homepage: browse by topic" locations |
 
 ## Theme development
 

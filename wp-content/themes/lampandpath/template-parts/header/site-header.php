@@ -9,7 +9,7 @@
  * @package Lampandpath
  */
 
-$lampandpath_has_menu        = has_nav_menu( 'primary' );
+$lampandpath_has_menu        = lampandpath_has_menu_items( 'primary' );
 $lampandpath_subscribe_url   = lampandpath_subscribe_url();
 $lampandpath_subscribe_label = lampandpath_get_option( 'lampandpath_subscribe_label' );
 ?>
@@ -30,7 +30,9 @@ $lampandpath_subscribe_label = lampandpath_get_option( 'lampandpath_subscribe_la
 					)
 				);
 				?>
-				<a href="<?php echo esc_url( $lampandpath_subscribe_url ); ?>" class="mt-3 flex h-11 items-center justify-center rounded-full bg-accent px-[22px] text-base font-semibold text-white hover:bg-accent-strong sm:hidden"><?php echo esc_html( $lampandpath_subscribe_label ); ?></a>
+				<?php if ( $lampandpath_subscribe_url ) : ?>
+					<a href="<?php echo esc_url( $lampandpath_subscribe_url ); ?>" class="mt-3 flex h-11 items-center justify-center rounded-full bg-accent px-[22px] text-base font-semibold text-white hover:bg-accent-strong sm:hidden"><?php echo esc_html( $lampandpath_subscribe_label ); ?></a>
+				<?php endif; ?>
 			</nav>
 		<?php endif; ?>
 
@@ -40,7 +42,10 @@ $lampandpath_subscribe_label = lampandpath_get_option( 'lampandpath_subscribe_la
 				<span class="sr-only sm:not-sr-only"><?php esc_html_e( 'Search', 'lampandpath' ); ?></span>
 			</button>
 
-			<a href="<?php echo esc_url( $lampandpath_subscribe_url ); ?>" class="hidden h-11 items-center rounded-full bg-accent px-[22px] text-base font-semibold text-white hover:bg-accent-strong sm:flex"><?php echo esc_html( $lampandpath_subscribe_label ); ?></a>
+			<?php // Empty when there is no custom link and the homepage newsletter card is hidden. ?>
+			<?php if ( $lampandpath_subscribe_url ) : ?>
+				<a href="<?php echo esc_url( $lampandpath_subscribe_url ); ?>" class="hidden h-11 items-center rounded-full bg-accent px-[22px] text-base font-semibold text-white hover:bg-accent-strong sm:flex"><?php echo esc_html( $lampandpath_subscribe_label ); ?></a>
+			<?php endif; ?>
 
 			<?php if ( $lampandpath_has_menu ) : ?>
 				<button type="button" data-lp-nav-toggle aria-controls="site-navigation" aria-expanded="false" class="group flex size-11 items-center justify-center rounded-full border border-line-strong bg-white text-ink hover:border-ink xl:hidden">
