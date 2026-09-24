@@ -401,12 +401,23 @@ class Lampandpath_Seed_Content {
 	}
 
 	/**
-	 * Deletes WordPress's "Hello world!" post and "Sample Page".
+	 * Deletes WordPress's "Hello world!" post and "Sample Page", but only while they are untouched.
+	 *
+	 * WordPress gives a new post a modified date equal to its publish date and
+	 * changes it on every edit, so a mismatch means someone has reused the post.
 	 */
 	private function remove_sample_content() {
 		foreach ( array( 'hello-world' => 'post', 'sample-page' => 'page' ) as $slug => $post_type ) {
-			$id = $this->find_post( $slug, $post_type );
-			if ( $id && wp_delete_post( $id, true ) ) {
+			$post = get_post( $this->find_post( $slug, $post_type ) );
+			if ( ! $post ) {
+				continue;
+			}
+
+			if ( $post->post_modified_gmt !== $post->post_date_gmt ) {
+				WP_CLI::log( sprintf( 'Kept the "%s" %s: it has been edited.', $slug, $post_type ) );
+				continue;
+			}
+			if ( wp_delete_post( $post->ID, true ) ) {
 				WP_CLI::log( sprintf( 'Removed the default "%s" %s.', $slug, $post_type ) );
 			}
 		}
