@@ -44,7 +44,7 @@ The site runs at https://lampandpath.ddev.site.
 
 ## Seeding content
 
-`ddev wp lampandpath seed` sets the site title, permalinks, categories, pages, menus and reading settings from the design. It reuses anything that already exists, so it is safe to run again. Menus that already exist are kept; pass `--reset-menus` to rebuild them (this discards menu edits made in wp-admin).
+`ddev wp lampandpath seed` sets the site title, permalinks, categories, pages, menus and reading settings from the design. It reuses anything that already exists, so it is safe to run again: menus only fill empty menu locations, and existing pages keep their content and (unless they are drafts) their status. Pass `--reset-menus` to rebuild the seeded menus and reassign their locations (this discards menu edits made in wp-admin). The command exits with an error if a menu links to a page or category that does not exist.
 
 ## Theme development
 
