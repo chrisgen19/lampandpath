@@ -17,6 +17,7 @@ function lampandpath_menu_link_classes() {
 		'primary' => 'flex h-11 items-center rounded-full px-3.5 text-base font-medium text-ink-soft hover:bg-surface-soft hover:text-ink aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent',
 		'footer'  => 'inline-flex min-h-11 items-center text-base text-ink-soft hover:text-accent hover:underline',
 		'legal'   => 'inline-flex min-h-11 items-center text-muted underline hover:text-accent',
+		'topics'  => 'flex h-11 items-center rounded-full bg-surface-soft px-4 text-[15px] font-medium text-ink hover:bg-accent-soft hover:text-accent',
 	);
 }
 
