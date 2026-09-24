@@ -35,11 +35,13 @@ function lampandpath_setup() {
 
 	register_nav_menus(
 		array(
-			'primary'  => __( 'Primary menu', 'lampandpath' ),
-			'footer-1' => __( 'Footer column 1', 'lampandpath' ),
-			'footer-2' => __( 'Footer column 2', 'lampandpath' ),
-			'footer-3' => __( 'Footer column 3', 'lampandpath' ),
-			'legal'    => __( 'Legal links', 'lampandpath' ),
+			'primary'         => __( 'Primary menu', 'lampandpath' ),
+			'footer-1'        => __( 'Footer column 1', 'lampandpath' ),
+			'footer-2'        => __( 'Footer column 2', 'lampandpath' ),
+			'footer-3'        => __( 'Footer column 3', 'lampandpath' ),
+			'legal'           => __( 'Legal links', 'lampandpath' ),
+			'article-filters' => __( 'Homepage: article filter chips (categories)', 'lampandpath' ),
+			'topics'          => __( 'Homepage: browse by topic', 'lampandpath' ),
 		)
 	);
 }
