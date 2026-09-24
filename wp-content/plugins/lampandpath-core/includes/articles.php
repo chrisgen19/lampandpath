@@ -64,15 +64,32 @@ function lampandpath_core_views_key( $month = null ) {
 /**
  * Adds one view to an article for the current month.
  *
+ * The count is incremented inside a single UPDATE, which the database runs
+ * atomically, so views arriving at the same moment are never lost (a read,
+ * add and write in PHP would let two requests both write the same total).
  * Called by the view beacon endpoint in Phase 4.
  *
  * @param int $post_id Post ID.
  * @return int The new view count for this month.
  */
 function lampandpath_core_record_view( $post_id ) {
-	$key   = lampandpath_core_views_key();
-	$views = (int) get_post_meta( $post_id, $key, true ) + 1;
-	update_post_meta( $post_id, $key, $views );
+	global $wpdb;
 
-	return $views;
+	$key = lampandpath_core_views_key();
+	// LIMIT 1: if a race ever created two rows, only one keeps counting.
+	$increment = $wpdb->prepare(
+		"UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = %s LIMIT 1",
+		$post_id,
+		$key
+	);
+
+	// No row yet means this is the month's first view. If another request adds the row first, count on top of it.
+	if ( ! $wpdb->query( $increment ) && ! add_post_meta( $post_id, $key, 1, true ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- Prepared above; a direct query is the point.
+		$wpdb->query( $increment ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+	}
+
+	// The UPDATE bypasses the meta API, so drop the cached meta before reading the new total.
+	wp_cache_delete( $post_id, 'post_meta' );
+
+	return (int) get_post_meta( $post_id, $key, true );
 }
