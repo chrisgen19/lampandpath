@@ -71,6 +71,17 @@ The `lampandpath-core` plugin owns the content; the theme only renders it (via t
 | Homepage headings, intros, button labels and links | Appearance > Customize > Homepage | Each section can be hidden. The featured article is the latest sticky post (or the latest post). |
 | Homepage filter chips and topics | Appearance > Menus | Menus in the "Homepage: article filter chips" and "Homepage: browse by topic" locations |
 
+## Forms and interactions
+
+The prayer request and newsletter forms, "I prayed" and the article view counter are handled by `lampandpath-core`; the theme's `assets/js/interactions.js` calls them and also runs the topic filters, Load more, Copy and Share, and Save for later.
+
+- **REST routes** (`/wp-json/lampandpath/v1/`): `GET token`, `POST prayers`, `POST prayers/<id>/prayed`, `POST subscribers`, `POST views/<id>` (plugin) and `GET articles` (theme, returns rendered cards). Write routes need a fresh token in the `X-LP-Token` header, fetched just before submitting, so cached pages keep working.
+- **Without JavaScript** the forms post to `admin-post.php` and show the result after the redirect; the filters and Load more are normal links. The form nonce is only checked for logged-in users, so cached pages served to visitors never go stale.
+- **Spam and abuse:** a hidden honeypot field, a 3-second time trap, per-visitor rate limits (salted IP hash, never the IP itself) and length and email validation. Rate limits and duplicate-subscriber checks run under a database lock (`GET_LOCK`), so parallel requests cannot slip past them. With JavaScript the time trap is measured in the browser; without it, it uses the page's generation time, so it only helps on uncached pages (the honeypot and rate limits always apply). Raise a limit for shared networks with the `lampandpath_rate_limit` filter.
+- **Prayer requests** are saved as pending and emailed to the site admin email (change the recipient with `lampandpath_prayer_notify_email`). Publishing a request approves it; it only appears on the prayer wall if the person agreed.
+- **Newsletter subscribers** are stored under Subscribers. To send them to a mailing provider, hook `lampandpath_newsletter_subscribed` (receives the email and subscriber ID).
+- **Save for later, "I prayed" state and view de-duplication** are stored in the visitor's browser (`localStorage`), with no accounts.
+
 ## Theme development
 
 The theme uses [Tailwind CSS v4](https://tailwindcss.com). Styles are written in `src/css/app.css` and built to `assets/css/app.css`, which is committed because the production host has no Node.

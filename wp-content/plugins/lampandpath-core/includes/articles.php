@@ -62,20 +62,19 @@ function lampandpath_core_views_key( $month = null ) {
 }
 
 /**
- * Adds one view to an article for the current month.
+ * Adds one to a numeric post meta value without losing concurrent updates.
  *
  * The count is incremented inside a single UPDATE, which the database runs
- * atomically, so views arriving at the same moment are never lost (a read,
- * add and write in PHP would let two requests both write the same total).
- * Called by the view beacon endpoint in Phase 4.
+ * atomically (a read, add and write in PHP would let two requests both write
+ * the same total). Used for article views and "I prayed" counts.
  *
- * @param int $post_id Post ID.
- * @return int The new view count for this month.
+ * @param int    $post_id Post ID.
+ * @param string $key     Meta key.
+ * @return int The new value.
  */
-function lampandpath_core_record_view( $post_id ) {
+function lampandpath_core_increment_meta( $post_id, $key ) {
 	global $wpdb;
 
-	$key = lampandpath_core_views_key();
 	// LIMIT 1: if a race ever created two rows, only one keeps counting.
 	$increment = $wpdb->prepare(
 		"UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = %s LIMIT 1",
@@ -83,7 +82,7 @@ function lampandpath_core_record_view( $post_id ) {
 		$key
 	);
 
-	// No row yet means this is the month's first view. If another request adds the row first, count on top of it.
+	// No row yet means this is the first count. If another request adds the row first, count on top of it.
 	if ( ! $wpdb->query( $increment ) && ! add_post_meta( $post_id, $key, 1, true ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- Prepared above; a direct query is the point.
 		$wpdb->query( $increment ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
 	}
@@ -92,4 +91,16 @@ function lampandpath_core_record_view( $post_id ) {
 	wp_cache_delete( $post_id, 'post_meta' );
 
 	return (int) get_post_meta( $post_id, $key, true );
+}
+
+/**
+ * Adds one view to an article for the current month.
+ *
+ * Called by the view beacon endpoint (includes/rest.php).
+ *
+ * @param int $post_id Post ID.
+ * @return int The new view count for this month.
+ */
+function lampandpath_core_record_view( $post_id ) {
+	return lampandpath_core_increment_meta( $post_id, lampandpath_core_views_key() );
 }

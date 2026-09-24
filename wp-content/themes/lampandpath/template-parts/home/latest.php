@@ -47,7 +47,8 @@ $lampandpath_chip      = 'flex h-11 items-center rounded-full border px-[18px] t
 				<?php endif; ?>
 
 				<?php if ( $lampandpath_latest->have_posts() ) : ?>
-					<div class="mt-2 divide-y divide-line" data-lp-articles>
+					<?php // The data attributes tell assets/js/interactions.js how to fetch more cards like these. ?>
+					<div class="mt-2 divide-y divide-line" data-lp-articles data-lp-per-page="5" data-lp-heading="h3" data-lp-exclude="<?php echo esc_attr( $lampandpath_hero ? $lampandpath_hero->ID : '' ); ?>">
 						<?php
 						while ( $lampandpath_latest->have_posts() ) {
 							$lampandpath_latest->the_post();
@@ -58,7 +59,7 @@ $lampandpath_chip      = 'flex h-11 items-center rounded-full border px-[18px] t
 					</div>
 
 					<div class="mt-9">
-						<a href="<?php echo esc_url( $lampandpath_posts_url ); ?>" data-lp-load-more class="inline-flex h-13 items-center rounded-full border border-line-strong bg-white px-7 text-base leading-none font-semibold text-ink no-underline hover:border-ink"><?php echo esc_html( lampandpath_home_option( 'latest', 'more_label' ) ); ?></a>
+						<a href="<?php echo esc_url( $lampandpath_posts_url ); ?>" data-lp-load-more <?php echo $lampandpath_latest->max_num_pages > 1 ? '' : 'hidden'; ?> class="inline-flex h-13 items-center rounded-full border border-line-strong bg-white px-7 text-base leading-none font-semibold text-ink no-underline hover:border-ink"><?php echo esc_html( lampandpath_home_option( 'latest', 'more_label' ) ); ?></a>
 					</div>
 				<?php else : ?>
 					<p class="mt-8 text-lg text-ink-soft"><?php esc_html_e( 'No articles yet. New articles will appear here.', 'lampandpath' ); ?></p>
