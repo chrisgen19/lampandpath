@@ -1,0 +1,29 @@
+# Whitelist approach: ignore everything at the root (WordPress core,
+# wp-config*.php, .htaccess, logs), then re-include only what we own.
+/*
+!/.gitignore
+!/.ddev/
+!/README.md
+!/wp-content/
+
+# wp-content: only track code, never uploads/cache/upgrade/languages
+/wp-content/*
+!/wp-content/mu-plugins/
+!/wp-content/themes/
+!/wp-content/plugins/
+
+# Themes: only the custom theme
+/wp-content/themes/*
+!/wp-content/themes/lampandpath/
+
+# Plugins: only custom plugins (third-party ones are installed per environment).
+# Whitelist a plugin by adding a line like:
+# !/wp-content/plugins/lampandpath-core/
+/wp-content/plugins/*
+
+# Dependencies, build output and junk inside tracked code
+node_modules/
+vendor/
+*.log
+.DS_Store
+Thumbs.db
