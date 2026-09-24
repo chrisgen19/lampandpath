@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI command that seeds the site with the structure from the homepage design.
+ * WP-CLI command that seeds the site with the structure and content from the homepage design.
  *
  * @package Lampandpath_Core
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seeds settings, categories, pages and menus. Safe to run repeatedly.
+ * Seeds settings, terms, pages, demo content and menus. Safe to run repeatedly.
  */
 class Lampandpath_Seed_Command {
 
@@ -24,6 +24,20 @@ class Lampandpath_Seed_Command {
 		'faith-and-doubt'  => 'Faith and doubt',
 		'hope-and-healing' => 'Hope and healing',
 		'faith-and-work'   => 'Faith and work',
+	);
+
+	/**
+	 * Topic tags from the "Browse by topic" sidebar, keyed by slug.
+	 */
+	private const TAGS = array(
+		'marriage'         => 'Marriage',
+		'parenting'        => 'Parenting',
+		'grief'            => 'Grief',
+		'anxiety'          => 'Anxiety',
+		'forgiveness'      => 'Forgiveness',
+		'worship'          => 'Worship',
+		'work-and-calling' => 'Work and calling',
+		'new-believers'    => 'New believers',
 	);
 
 	/**
@@ -51,21 +65,25 @@ class Lampandpath_Seed_Command {
 	private const PLACEHOLDER = '<!-- wp:paragraph --><p>This page is a placeholder. Replace it with the final copy.</p><!-- /wp:paragraph -->';
 
 	/**
-	 * Seeds site settings, categories, pages and menus from the homepage design.
+	 * Seeds site settings, terms, pages, demo content and menus from the homepage design.
 	 *
-	 * Existing categories and pages are reused, so the command is safe to run
-	 * repeatedly. Menus only fill empty menu locations unless --reset-menus is
-	 * passed, so menus assigned or edited in wp-admin are left alone.
+	 * Existing items are reused and never overwritten, so the command is safe to
+	 * run repeatedly. Menus only fill empty menu locations unless --reset-menus
+	 * is passed, so menus assigned or edited in wp-admin are left alone.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--reset-menus]
 	 * : Rebuild the seeded menus and reassign their locations, discarding menu edits made in wp-admin.
 	 *
+	 * [--skip-content]
+	 * : Only set up the structure (settings, categories, tags, pages, menus). Skip writers, articles, verses, plans, prayer requests and images.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp lampandpath seed
 	 *     wp lampandpath seed --reset-menus
+	 *     wp lampandpath seed --skip-content
 	 *
 	 * @param array $args       Positional arguments (unused).
 	 * @param array $assoc_args Associative arguments.
@@ -76,13 +94,23 @@ class Lampandpath_Seed_Command {
 		}
 
 		$this->seed_settings();
-		$categories = $this->seed_categories();
-		$pages      = $this->seed_pages();
-		$this->seed_reading_settings( $pages );
-		$menus_ok = $this->seed_menus( $categories, $pages, (bool) WP_CLI\Utils\get_flag_value( $assoc_args, 'reset-menus', false ) );
+		$targets = array(
+			'category' => $this->seed_terms( 'category', self::CATEGORIES, 'Categories' ),
+			'tag'      => $this->seed_terms( 'post_tag', self::TAGS, 'Tags' ),
+			'page'     => $this->seed_pages(),
+		);
+		$this->seed_reading_settings( $targets['page'] );
+
+		$content_ok = true;
+		if ( ! WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-content', false ) ) {
+			$content    = new Lampandpath_Seed_Content();
+			$content_ok = $content->run( $targets['category'], $targets['tag'] );
+		}
+
+		$menus_ok = $this->seed_menus( $targets, (bool) WP_CLI\Utils\get_flag_value( $assoc_args, 'reset-menus', false ) );
 		$this->seed_theme_mods();
 
-		if ( ! $menus_ok ) {
+		if ( ! $menus_ok || ! $content_ok ) {
 			WP_CLI::error( 'Seed finished with errors; see the warnings above.' );
 		}
 		WP_CLI::success( 'Seed complete.' );
@@ -103,28 +131,31 @@ class Lampandpath_Seed_Command {
 	}
 
 	/**
-	 * Creates the article categories that do not exist yet.
+	 * Creates the terms of a taxonomy that do not exist yet.
 	 *
+	 * @param string                $taxonomy Taxonomy name.
+	 * @param array<string, string> $terms    Term names keyed by slug.
+	 * @param string                $label    Label for the log line, e.g. "Categories".
 	 * @return array<string, int> Term IDs keyed by slug.
 	 */
-	private function seed_categories() {
+	private function seed_terms( $taxonomy, array $terms, $label ) {
 		$ids = array();
-		foreach ( self::CATEGORIES as $slug => $name ) {
-			$term = get_term_by( 'slug', $slug, 'category' );
+		foreach ( $terms as $slug => $name ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
 			if ( $term ) {
 				$ids[ $slug ] = (int) $term->term_id;
 				continue;
 			}
 
-			$result = wp_insert_term( $name, 'category', array( 'slug' => $slug ) );
+			$result = wp_insert_term( $name, $taxonomy, array( 'slug' => $slug ) );
 			if ( is_wp_error( $result ) ) {
-				WP_CLI::warning( sprintf( 'Category "%s": %s', $name, $result->get_error_message() ) );
+				WP_CLI::warning( sprintf( '%s "%s": %s', $label, $name, $result->get_error_message() ) );
 				continue;
 			}
 			$ids[ $slug ] = (int) $result['term_id'];
 		}
 
-		WP_CLI::log( sprintf( 'Categories: %d ready.', count( $ids ) ) );
+		WP_CLI::log( sprintf( '%s: %d ready.', $label, count( $ids ) ) );
 		return $ids;
 	}
 
@@ -225,8 +256,8 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Returns the menus to create: name => theme location and items.
 	 *
-	 * Items are [type, target, label]: type "page" and "category" target a slug,
-	 * type "custom" targets a site-relative URL.
+	 * Items are [type, target, label]: types "page", "category" and "tag" target a
+	 * slug, "archive" targets a post type, and "custom" targets a site-relative URL.
 	 *
 	 * @return array<string, array{location: string, items: array<int, array{0: string, 1: string, 2: string}>}>
 	 */
@@ -239,7 +270,7 @@ class Lampandpath_Seed_Command {
 					array( 'category', 'devotionals', 'Devotionals' ),
 					array( 'category', 'bible-study', 'Bible study' ),
 					array( 'category', 'prayer', 'Prayer' ),
-					array( 'custom', '/reading-plans/', 'Reading plans' ),
+					array( 'archive', 'lp_plan', 'Reading plans' ),
 					array( 'page', 'about', 'About' ),
 				),
 			),
@@ -249,7 +280,7 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'articles', 'Latest articles' ),
 					array( 'category', 'devotionals', 'Devotionals' ),
 					array( 'category', 'bible-study', 'Bible study' ),
-					array( 'custom', '/reading-plans/', 'Reading plans' ),
+					array( 'archive', 'lp_plan', 'Reading plans' ),
 					array( 'category', 'prayer', 'Prayers' ),
 				),
 			),
@@ -281,6 +312,32 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'accessibility', 'Accessibility' ),
 				),
 			),
+			'Article filters' => array(
+				'location' => 'article-filters',
+				'items'    => array(
+					array( 'category', 'devotionals', 'Devotionals' ),
+					array( 'category', 'bible-study', 'Bible study' ),
+					array( 'category', 'prayer', 'Prayer' ),
+					array( 'category', 'family', 'Family' ),
+					array( 'category', 'christian-living', 'Christian living' ),
+				),
+			),
+			'Topics'    => array(
+				'location' => 'topics',
+				'items'    => array(
+					array( 'category', 'devotionals', 'Devotionals' ),
+					array( 'category', 'bible-study', 'Bible study' ),
+					array( 'category', 'prayer', 'Prayer' ),
+					array( 'tag', 'marriage', 'Marriage' ),
+					array( 'tag', 'parenting', 'Parenting' ),
+					array( 'tag', 'grief', 'Grief' ),
+					array( 'tag', 'anxiety', 'Anxiety' ),
+					array( 'tag', 'forgiveness', 'Forgiveness' ),
+					array( 'tag', 'worship', 'Worship' ),
+					array( 'tag', 'work-and-calling', 'Work and calling' ),
+					array( 'tag', 'new-believers', 'New believers' ),
+				),
+			),
 		);
 	}
 
@@ -290,12 +347,11 @@ class Lampandpath_Seed_Command {
 	 * Without $reset only empty locations are filled, so a menu an editor
 	 * assigned in wp-admin is never swapped back.
 	 *
-	 * @param array<string, int> $categories Category IDs keyed by slug.
-	 * @param array<string, int> $pages      Page IDs keyed by slug.
-	 * @param bool               $reset      Whether to rebuild menus and reassign their locations.
+	 * @param array<string, array<string, int>> $targets Link target IDs by type ("page", "category", "tag"), keyed by slug.
+	 * @param bool                              $reset   Whether to rebuild menus and reassign their locations.
 	 * @return bool False when a menu could not be built.
 	 */
-	private function seed_menus( array $categories, array $pages, $reset ) {
+	private function seed_menus( array $targets, $reset ) {
 		$locations = (array) get_theme_mod( 'nav_menu_locations', array() );
 		$ok        = true;
 
@@ -306,7 +362,7 @@ class Lampandpath_Seed_Command {
 				continue;
 			}
 
-			$menu_id = $this->seed_menu( $name, $menu['items'], $categories, $pages, $reset );
+			$menu_id = $this->seed_menu( $name, $menu['items'], $targets, $reset );
 			if ( $menu_id ) {
 				$locations[ $location ] = $menu_id;
 			} else {
@@ -321,14 +377,13 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Creates or rebuilds one menu. An existing menu is reused as-is unless $reset is set.
 	 *
-	 * @param string                                             $name       Menu name.
-	 * @param array<int, array{0: string, 1: string, 2: string}> $items      Menu definition items.
-	 * @param array<string, int>                                 $categories Category IDs keyed by slug.
-	 * @param array<string, int>                                 $pages      Page IDs keyed by slug.
-	 * @param bool                                               $reset      Whether to replace the items of an existing menu.
+	 * @param string                                             $name    Menu name.
+	 * @param array<int, array{0: string, 1: string, 2: string}> $items   Menu definition items.
+	 * @param array<string, array<string, int>>                  $targets Link target IDs by type, keyed by slug.
+	 * @param bool                                               $reset   Whether to replace the items of an existing menu.
 	 * @return int Menu ID, or 0 on failure.
 	 */
-	private function seed_menu( $name, array $items, array $categories, array $pages, $reset ) {
+	private function seed_menu( $name, array $items, array $targets, $reset ) {
 		$existing = wp_get_nav_menu_object( $name );
 		if ( $existing && ! $reset ) {
 			WP_CLI::log( sprintf( 'Menu "%s": exists, assigned without changing its items.', $name ) );
@@ -336,7 +391,7 @@ class Lampandpath_Seed_Command {
 		}
 
 		// Resolve every link target first, so a missing page never leaves a half-built menu.
-		$item_data = $this->build_menu_items( $name, $items, $categories, $pages );
+		$item_data = $this->build_menu_items( $name, $items, $targets );
 		if ( null === $item_data ) {
 			return 0;
 		}
@@ -365,16 +420,15 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Converts menu definition items into wp_update_nav_menu_item() data.
 	 *
-	 * @param string                                             $name       Menu name, for warnings.
-	 * @param array<int, array{0: string, 1: string, 2: string}> $items      Menu definition items.
-	 * @param array<string, int>                                 $categories Category IDs keyed by slug.
-	 * @param array<string, int>                                 $pages      Page IDs keyed by slug.
-	 * @return array|null Item data, or null when a linked page or category does not exist.
+	 * @param string                                             $name    Menu name, for warnings.
+	 * @param array<int, array{0: string, 1: string, 2: string}> $items   Menu definition items.
+	 * @param array<string, array<string, int>>                  $targets Link target IDs by type, keyed by slug.
+	 * @return array|null Item data, or null when a link target does not exist.
 	 */
-	private function build_menu_items( $name, array $items, array $categories, array $pages ) {
+	private function build_menu_items( $name, array $items, array $targets ) {
 		$data = array();
 		foreach ( $items as $index => $item ) {
-			$item_data = $this->menu_item_data( $item, $index + 1, $categories, $pages );
+			$item_data = $this->menu_item_data( $item, $index + 1, $targets );
 			if ( null === $item_data ) {
 				WP_CLI::warning( sprintf( 'Menu "%s": %s "%s" not found, menu left unchanged.', $name, $item[0], $item[1] ) );
 				return null;
@@ -399,13 +453,12 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Converts a menu definition item into wp_update_nav_menu_item() data.
 	 *
-	 * @param array{0: string, 1: string, 2: string} $item       [type, target, label].
-	 * @param int                                    $position   Menu order.
-	 * @param array<string, int>                     $categories Category IDs keyed by slug.
-	 * @param array<string, int>                     $pages      Page IDs keyed by slug.
-	 * @return array|null Item data, or null when the linked page or category does not exist.
+	 * @param array{0: string, 1: string, 2: string} $item     [type, target, label].
+	 * @param int                                    $position Menu order.
+	 * @param array<string, array<string, int>>      $targets  Link target IDs by type, keyed by slug.
+	 * @return array|null Item data, or null when the link target does not exist.
 	 */
-	private function menu_item_data( array $item, $position, array $categories, array $pages ) {
+	private function menu_item_data( array $item, $position, array $targets ) {
 		list( $type, $target, $label ) = $item;
 
 		$data = array(
@@ -421,16 +474,27 @@ class Lampandpath_Seed_Command {
 			);
 		}
 
+		if ( 'archive' === $type ) {
+			return post_type_exists( $target ) ? $data + array(
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => $target,
+			) : null;
+		}
+
+		$objects = array(
+			'page'     => array( 'post_type', 'page' ),
+			'category' => array( 'taxonomy', 'category' ),
+			'tag'      => array( 'taxonomy', 'post_tag' ),
+		);
 		// WordPress accepts an item with object ID 0 but then silently drops it from the menu.
-		$ids = 'page' === $type ? $pages : $categories;
-		if ( empty( $ids[ $target ] ) ) {
+		if ( ! isset( $objects[ $type ] ) || empty( $targets[ $type ][ $target ] ) ) {
 			return null;
 		}
 
 		return $data + array(
-			'menu-item-type'      => 'page' === $type ? 'post_type' : 'taxonomy',
-			'menu-item-object'    => $type,
-			'menu-item-object-id' => $ids[ $target ],
+			'menu-item-type'      => $objects[ $type ][0],
+			'menu-item-object'    => $objects[ $type ][1],
+			'menu-item-object-id' => $targets[ $type ][ $target ],
 		);
 	}
 
