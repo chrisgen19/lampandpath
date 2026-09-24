@@ -12,7 +12,8 @@ if ( ! lampandpath_home_show( 'latest' ) ) {
 	return;
 }
 
-$lampandpath_hero      = lampandpath_home_hero_post();
+// Only skip the featured article when it is actually shown above.
+$lampandpath_hero      = lampandpath_home_show( 'hero' ) ? lampandpath_home_hero_post() : null;
 $lampandpath_latest    = new WP_Query(
 	array(
 		'posts_per_page'      => 5,

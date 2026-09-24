@@ -56,12 +56,18 @@ add_filter( 'get_custom_logo_image_attributes', 'lampandpath_custom_logo_attribu
 /**
  * Returns the Subscribe button URL, defaulting to the homepage newsletter form.
  *
+ * Returns an empty string when no custom link is set and the newsletter card is
+ * hidden on the homepage, because the default #newsletter target would not exist.
+ *
  * @return string
  */
 function lampandpath_subscribe_url() {
 	$url = lampandpath_get_option( 'lampandpath_subscribe_url' );
+	if ( $url ) {
+		return $url;
+	}
 
-	return $url ? $url : home_url( '/#newsletter' );
+	return lampandpath_home_show( 'newsletter' ) ? home_url( '/#newsletter' ) : '';
 }
 
 /**
