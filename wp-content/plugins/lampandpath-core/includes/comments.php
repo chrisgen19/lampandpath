@@ -61,10 +61,18 @@ function lampandpath_core_block_rest_comments( $response, $handler, $request ) {
 		return $response;
 	}
 
-	// A single comment's type comes from the comment; a list's from the "type" parameter (default "comment").
-	$comment = $request['id'] ? get_comment( (int) $request['id'] ) : null;
-	$type    = $comment ? $comment->comment_type : $request['type'];
-	if ( 'note' === $type || ( $request['id'] && ! $comment ) ) {
+	// A single comment (/comments/<id>) is judged by its own type, a list by its "type" parameter
+	// (default "comment"). The ID must come from the URL: an "id" query parameter on the list
+	// route is ignored by the query, so trusting it would let any list through.
+	$url_params = $request->get_url_params();
+	if ( isset( $url_params['id'] ) ) {
+		$comment = get_comment( (int) $url_params['id'] );
+		$is_note = $comment && 'note' === $comment->comment_type;
+	} else {
+		$is_note = 'note' === $request['type'];
+	}
+
+	if ( $is_note ) {
 		return $response;
 	}
 
