@@ -1,0 +1,4 @@
+# @parcel/watcher (used by the Tailwind CLI watch mode) ships prebuilt binaries,
+# so its build-from-source install script is not needed.
+allowBuilds:
+  '@parcel/watcher': false

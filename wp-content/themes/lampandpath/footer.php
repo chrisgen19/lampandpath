@@ -2,17 +2,16 @@
 /**
  * The footer for the theme
  *
- * Closes the page layout opened in header.php.
+ * Prints the site footer and closes the page wrapper opened in header.php.
  *
  * @link https://developer.wordpress.org/themes/basics/template-files/#template-partials
  *
  * @package Lampandpath
  */
 
+get_template_part( 'template-parts/footer/site-footer' );
 ?>
-<footer class="site-footer">
-	<p>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
-</footer>
+</div>
 
 <?php wp_footer(); ?>
 </body>
