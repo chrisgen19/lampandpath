@@ -9,7 +9,7 @@
 
 if ( ! defined( 'LAMPANDPATH_VERSION' ) ) {
 	// Bump on each release so browsers fetch fresh theme assets.
-	define( 'LAMPANDPATH_VERSION', '0.2.0' );
+	define( 'LAMPANDPATH_VERSION', '1.0.0' );
 }
 
 require get_template_directory() . '/inc/setup.php';

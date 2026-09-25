@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Lamp & Path Core
  * Description:       Content model, forms and developer tooling for the Lamp & Path site. The lampandpath theme handles presentation.
- * Version:           0.3.0
+ * Version:           1.0.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Chris Diomampo
@@ -15,11 +15,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LAMPANDPATH_CORE_VERSION', '0.3.0' );
+define( 'LAMPANDPATH_CORE_VERSION', '1.0.0' );
 define( 'LAMPANDPATH_CORE_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once LAMPANDPATH_CORE_DIR . 'includes/post-types.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/comments.php';
+require_once LAMPANDPATH_CORE_DIR . 'includes/mail.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/meta.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/articles.php';
 require_once LAMPANDPATH_CORE_DIR . 'includes/template-api.php';
@@ -54,8 +55,10 @@ register_activation_hook( __FILE__, 'lampandpath_core_activate' );
 /**
  * Flushes rewrite rules once after the plugin is updated.
  *
- * Deploys update the plugin in place (git pull), so the activation hook never
- * runs again and new post type or taxonomy URLs would 404 until the next flush.
+ * Deploys replace the plugin's files without activating it again (the Docker
+ * image copies them into place on every container start), so the activation
+ * hook never runs again and new post type or taxonomy URLs would 404 until the
+ * next flush.
  * Runs after the post types register on init (priority 10).
  */
 function lampandpath_core_maybe_upgrade() {

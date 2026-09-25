@@ -5,9 +5,10 @@
  * Tailwind scans the whole theme folder (minus node_modules and CSS files)
  * for class names, so classes must appear as complete strings in PHP/JS.
  *
- * tokens.css and content.css are shared with editor.css (block editor styles).
+ * fonts.css, tokens.css and content.css are shared with editor.css (block editor styles).
  */
 @import "tailwindcss" source("../..");
+@import "./fonts.css";
 @import "./tokens.css";
 @import "./content.css";
 @plugin "@tailwindcss/typography";
@@ -39,6 +40,21 @@
 	::placeholder {
 		color: var(--color-placeholder);
 		opacity: 1;
+	}
+
+	/*
+	 * The theme itself has no motion; this also stills any that core blocks,
+	 * embeds or future styles add, for visitors who ask their system for less.
+	 */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
 	}
 }
 

@@ -42,7 +42,15 @@ $lampandpath_minutes  = lampandpath_reading_time_label( $lampandpath_post );
 				<a href="<?php echo esc_url( get_permalink( $lampandpath_post ) ); ?>" class="<?php echo esc_attr( lampandpath_button_class( 'primary', 'lg' ) ); ?>"><?php echo esc_html( lampandpath_home_option( 'hero', 'read_label' ) ); ?></a>
 				<?php // A toggle: pressed means saved; the label stays the same and the bookmark fills in. ?>
 				<button type="button" data-lp-save="<?php echo esc_attr( $lampandpath_post->ID ); ?>" aria-pressed="false" class="group <?php echo esc_attr( lampandpath_button_class( 'outline', 'lg', true ) ); ?> aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent">
-					<?php lampandpath_icon( 'bookmark', array( 'size' => 18, 'class' => 'group-aria-pressed:fill-current' ) ); ?>
+					<?php
+					lampandpath_icon(
+						'bookmark',
+						array(
+							'size'  => 18,
+							'class' => 'group-aria-pressed:fill-current',
+						)
+					);
+					?>
 					<?php echo esc_html( lampandpath_home_option( 'hero', 'save_label' ) ); ?>
 				</button>
 			</div>

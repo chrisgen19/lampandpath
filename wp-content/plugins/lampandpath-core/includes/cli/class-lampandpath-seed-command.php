@@ -135,6 +135,7 @@ class Lampandpath_Seed_Command {
 
 		$menus_ok = $this->seed_menus( $targets, (bool) WP_CLI\Utils\get_flag_value( $assoc_args, 'reset-menus', false ) );
 		$this->seed_theme_mods();
+		$this->reset_rewrite_rules();
 
 		if ( ! $this->ok || ! $menus_ok || ! $content_ok ) {
 			WP_CLI::error( 'Seed finished with errors; see the warnings above.' );
@@ -150,8 +151,8 @@ class Lampandpath_Seed_Command {
 
 		update_option( 'blogname', 'Lamp & Path' );
 		update_option( 'blogdescription', 'Articles, devotionals and Bible reading plans for everyday faith.' );
+		// The URL rules are rebuilt at the end of the run; see reset_rewrite_rules().
 		$wp_rewrite->set_permalink_structure( '/%postname%/' );
-		flush_rewrite_rules( false );
 
 		WP_CLI::log( 'Settings: site title, tagline and /%postname%/ permalinks.' );
 	}
@@ -236,6 +237,22 @@ class Lampandpath_Seed_Command {
 		remove_filter( 'pre_option_timezone_string', $use_timezone );
 
 		return $ok ? count( $verses ) : false;
+	}
+
+	/**
+	 * Drops the stored URL rules so WordPress rebuilds them on the next request.
+	 *
+	 * WordPress only adds the rules of categories, tags, post types and
+	 * collections when pretty permalinks were already on when it loaded. After
+	 * this run switches from plain permalinks (a fresh install that could not
+	 * test them, e.g. in a container), any rules built in this process would
+	 * miss them all and those URLs would 404. Rebuilding them here would give
+	 * the same incomplete set, so they are dropped last, after anything in this
+	 * run that may have rebuilt them.
+	 */
+	private function reset_rewrite_rules() {
+		delete_option( 'rewrite_rules' );
+		WP_CLI::log( 'Rewrite rules: will be rebuilt on the next page load.' );
 	}
 
 	/**
@@ -389,7 +406,7 @@ class Lampandpath_Seed_Command {
 	 */
 	private function menu_definitions() {
 		return array(
-			'Main'      => array(
+			'Main'            => array(
 				'location' => 'primary',
 				'items'    => array(
 					array( 'page', 'articles', 'Articles' ),
@@ -400,7 +417,7 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'about', 'About' ),
 				),
 			),
-			'Read'      => array(
+			'Read'            => array(
 				'location' => 'footer-1',
 				'items'    => array(
 					array( 'page', 'articles', 'Latest articles' ),
@@ -410,7 +427,7 @@ class Lampandpath_Seed_Command {
 					array( 'category', 'prayer', 'Prayers' ),
 				),
 			),
-			'Community' => array(
+			'Community'       => array(
 				'location' => 'footer-2',
 				'items'    => array(
 					array( 'page', 'prayer-wall', 'Prayer wall' ),
@@ -420,7 +437,7 @@ class Lampandpath_Seed_Command {
 					array( 'custom', '/#newsletter', 'Newsletter' ),
 				),
 			),
-			'About'     => array(
+			'About'           => array(
 				'location' => 'footer-3',
 				'items'    => array(
 					array( 'page', 'about', 'Our story' ),
@@ -430,7 +447,7 @@ class Lampandpath_Seed_Command {
 					array( 'page', 'contact', 'Contact us' ),
 				),
 			),
-			'Legal'     => array(
+			'Legal'           => array(
 				'location' => 'legal',
 				'items'    => array(
 					array( 'page', 'privacy-policy', 'Privacy policy' ),
@@ -448,7 +465,7 @@ class Lampandpath_Seed_Command {
 					array( 'category', 'christian-living', 'Christian living' ),
 				),
 			),
-			'Topics'    => array(
+			'Topics'          => array(
 				'location' => 'topics',
 				'items'    => array(
 					array( 'category', 'devotionals', 'Devotionals' ),

@@ -81,7 +81,15 @@ get_header();
 											</span>
 											<span class="text-[17px] leading-6 font-semibold"><?php echo esc_html( $lampandpath_reading ); ?></span>
 										</span>
-										<?php lampandpath_icon( 'book-open', array( 'size' => 20, 'class' => 'ml-auto text-accent' ) ); ?>
+										<?php
+										lampandpath_icon(
+											'book-open',
+											array(
+												'size'  => 20,
+												'class' => 'ml-auto text-accent',
+											)
+										);
+										?>
 									</a>
 								</li>
 							<?php endforeach; ?>

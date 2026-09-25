@@ -1,0 +1,59 @@
+# Production stack for Coolify (Docker Compose build pack); see the README,
+# "Deploying with Coolify". Coolify fills the SERVICE_* variables:
+# SERVICE_FQDN_WORDPRESS_80 gives the wordpress service its domain (proxied to
+# port 80), and the user and passwords are generated once and kept.
+# No ports are published: Coolify's proxy routes traffic to the container.
+services:
+  wordpress:
+    build: .
+    restart: unless-stopped
+    environment:
+      - SERVICE_FQDN_WORDPRESS_80
+      - WORDPRESS_DB_HOST=mariadb
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DB_USER=${SERVICE_USER_WORDPRESS}
+      - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_WORDPRESS}
+      # Code comes from the image, so updates and installs from wp-admin are switched off.
+      # WordPress cron runs from a Coolify scheduled task (README), not on page visits.
+      - "WORDPRESS_CONFIG_EXTRA=define( 'WP_ENVIRONMENT_TYPE', 'production' ); define( 'DISALLOW_FILE_MODS', true ); define( 'DISABLE_WP_CRON', true );"
+      # Outgoing email (prayer request notifications, password resets); see lampandpath-core/includes/mail.php.
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-tls}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+    volumes:
+      # Uploads and wp-config.php persist; code is refreshed from the image on every start.
+      - wordpress-files:/var/www/html
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1/wp-includes/images/blank.gif"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mariadb:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      - MARIADB_DATABASE=wordpress
+      - MARIADB_USER=${SERVICE_USER_WORDPRESS}
+      - MARIADB_PASSWORD=${SERVICE_PASSWORD_WORDPRESS}
+      - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      # Database dumps from the backup scheduled task (README).
+      - mariadb-backups:/backups
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  wordpress-files:
+  mariadb-data:
+  mariadb-backups:

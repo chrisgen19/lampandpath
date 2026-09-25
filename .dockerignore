@@ -1,0 +1,13 @@
+# Only what the Dockerfile copies goes into the build context. A local checkout
+# also holds WordPress core, wp-config.php and uploads (untracked).
+*
+!docker/
+!wp-content/themes/lampandpath/
+!wp-content/plugins/lampandpath-core/
+
+# Theme development files: the built CSS in assets/ is committed.
+wp-content/themes/lampandpath/node_modules
+wp-content/themes/lampandpath/src
+wp-content/themes/lampandpath/package.json
+wp-content/themes/lampandpath/pnpm-lock.yaml
+wp-content/themes/lampandpath/pnpm-workspace.yaml

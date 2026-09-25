@@ -34,11 +34,39 @@ function lampandpath_site_brand( $display = 'flex' ) {
 	?>
 	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="<?php echo esc_attr( $display ); ?> shrink-0 items-center gap-3 text-ink no-underline"
 		aria-label="<?php /* translators: %s: site title. */ echo esc_attr( sprintf( __( '%s, home', 'lampandpath' ), $name ) ); ?>">
-		<?php lampandpath_icon( 'lamp-mark', array( 'size' => 30, 'class' => 'text-accent' ) ); ?>
+		<?php
+		lampandpath_icon(
+			'lamp-mark',
+			array(
+				'size'  => 30,
+				'class' => 'text-accent',
+			)
+		);
+		?>
 		<span class="font-serif text-[27px] leading-none font-bold tracking-[-0.01em]"><?php echo esc_html( $name ); ?></span>
 	</a>
 	<?php
 }
+
+/**
+ * Prints a favicon of the lamp mark in the Season color until a Site Icon is set.
+ *
+ * Without any icon, browsers request /favicon.ico and get a 404 on every page.
+ * An inline SVG needs no extra request and follows the Season color.
+ */
+function lampandpath_default_favicon() {
+	if ( has_site_icon() ) {
+		return;
+	}
+
+	$svg = str_replace(
+		array( '<svg ', 'currentColor' ),
+		array( '<svg xmlns="http://www.w3.org/2000/svg" ', lampandpath_accent() ),
+		lampandpath_get_icon( 'lamp-mark', array( 'size' => 32 ) )
+	);
+	printf( '<link rel="icon" href="%s" type="image/svg+xml">' . "\n", esc_attr( 'data:image/svg+xml,' . rawurlencode( $svg ) ) );
+}
+add_action( 'wp_head', 'lampandpath_default_favicon' );
 
 /**
  * Keeps an uploaded logo at the header's height.

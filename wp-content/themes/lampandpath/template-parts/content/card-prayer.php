@@ -26,8 +26,24 @@ $lampandpath_name = (string) get_post_meta( $lampandpath_request->ID, 'lp_first_
 		</span>
 		<?php // Pressed shows "Prayed" with a check; the accessible name "I prayed" contains the visible text in both states. ?>
 		<button type="button" data-lp-prayed="<?php echo esc_attr( $lampandpath_request->ID ); ?>" aria-pressed="false" aria-label="<?php esc_attr_e( 'I prayed', 'lampandpath' ); ?>" class="group <?php echo esc_attr( lampandpath_button_class( 'outline', 'sm', true ) ); ?> aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent">
-			<?php lampandpath_icon( 'heart', array( 'size' => 18, 'class' => 'group-aria-pressed:hidden' ) ); ?>
-			<?php lampandpath_icon( 'check', array( 'size' => 18, 'class' => 'hidden group-aria-pressed:block' ) ); ?>
+			<?php
+			lampandpath_icon(
+				'heart',
+				array(
+					'size'  => 18,
+					'class' => 'group-aria-pressed:hidden',
+				)
+			);
+			?>
+			<?php
+			lampandpath_icon(
+				'check',
+				array(
+					'size'  => 18,
+					'class' => 'hidden group-aria-pressed:block',
+				)
+			);
+			?>
 			<span class="group-aria-pressed:hidden"><?php esc_html_e( 'I prayed', 'lampandpath' ); ?></span>
 			<span class="hidden group-aria-pressed:inline"><?php esc_html_e( 'Prayed', 'lampandpath' ); ?></span>
 		</button>

@@ -24,7 +24,7 @@ function lampandpath_menu_link_classes() {
 /**
  * Checks whether a menu location has a menu with at least one item.
  *
- * has_nav_menu() is also true for an assigned but empty menu, which would
+ * WordPress's has_nav_menu() is also true for an assigned but empty menu, which would
  * leave empty wrappers on the page (a card heading, a menu button). The
  * menu's stored item count avoids an extra query.
  *

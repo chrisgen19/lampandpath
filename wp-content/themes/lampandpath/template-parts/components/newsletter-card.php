@@ -30,7 +30,16 @@ $lampandpath_message = ( $lampandpath_result && function_exists( 'lampandpath_co
 		<input type="hidden" name="action" value="lampandpath_subscribe">
 		<input type="hidden" name="lp_started" value="<?php echo esc_attr( time() ); ?>">
 		<?php wp_nonce_field( 'lampandpath_subscribe', 'lampandpath_subscribe_nonce' ); ?>
-		<?php get_template_part( 'template-parts/components/form-status', null, array( 'message' => $lampandpath_message, 'success' => 'subscribed' === $lampandpath_result ) ); ?>
+		<?php
+		get_template_part(
+			'template-parts/components/form-status',
+			null,
+			array(
+				'message' => $lampandpath_message,
+				'success' => 'subscribed' === $lampandpath_result,
+			)
+		);
+		?>
 		<fieldset class="contents"<?php disabled( ! $lampandpath_ready ); ?>>
 			<?php get_template_part( 'template-parts/components/form-honeypot', null, array( 'id' => 'newsletter-website' ) ); ?>
 			<label for="newsletter-email" class="block text-base leading-6 font-semibold text-ink"><?php esc_html_e( 'Email address', 'lampandpath' ); ?></label>

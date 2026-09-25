@@ -9,6 +9,7 @@
  * - heading (string) Heading tag for the title, "h2" by default.
  * - layout  (string) "row" (default): image beside the text, for lists.
  *                    "stack": a boxed card with the image on top and no excerpt, for grids.
+ * - lazy    (bool)   Lazy-load the image. Default: outside the main query loop (see below).
  *
  * @package Lampandpath
  */
@@ -19,6 +20,10 @@ $lampandpath_category = lampandpath_primary_category();
 $lampandpath_author   = (int) get_the_author_meta( 'ID' );
 $lampandpath_minutes  = lampandpath_reading_time_label();
 $lampandpath_link     = get_permalink();
+
+// WordPress picks eager or lazy loading in the main query loop (archives). Elsewhere (the homepage
+// list, REST responses) cards sit below the fold, so they wait.
+$lampandpath_lazy = isset( $args['lazy'] ) ? (bool) $args['lazy'] : ! in_the_loop();
 
 if ( $lampandpath_stacked ) {
 	$lampandpath_class = array(
@@ -33,8 +38,8 @@ if ( $lampandpath_stacked ) {
 	$lampandpath_class = array(
 		'article' => 'flex flex-col gap-5 py-7 sm:flex-row sm:gap-7',
 		// self-start stops the row from stretching the image to the text height, which would override the 3:2 ratio.
-		'image'   => 'flex aspect-[3/2] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-[14px] bg-surface-soft text-accent sm:w-60',
-		'sizes'   => '(min-width: 640px) 240px, 100vw',
+		'image'   => 'flex aspect-[3/2] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-[14px] bg-surface-soft text-accent sm:w-60 lg:w-48 xl:w-60',
+		'sizes'   => '(min-width: 1280px) 240px, (min-width: 1024px) 192px, (min-width: 640px) 240px, 100vw',
 		'body'    => 'flex min-w-0 flex-1 flex-col items-start wrap-anywhere',
 		'title'   => 'mt-2 font-serif text-[26px] leading-[1.22] font-semibold',
 		'byline'  => 'mt-4 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-sm leading-5 text-muted',
@@ -46,14 +51,15 @@ if ( $lampandpath_stacked ) {
 	<a href="<?php echo esc_url( $lampandpath_link ); ?>" tabindex="-1" aria-hidden="true" class="<?php echo esc_attr( $lampandpath_class['image'] ); ?>">
 		<?php
 		if ( has_post_thumbnail() ) {
-			the_post_thumbnail(
-				'lampandpath-card',
-				array(
-					'class' => 'h-full w-full object-cover',
-					'alt'   => '',
-					'sizes' => $lampandpath_class['sizes'],
-				)
+			$lampandpath_image = array(
+				'class' => 'h-full w-full object-cover',
+				'alt'   => '',
+				'sizes' => $lampandpath_class['sizes'],
 			);
+			if ( $lampandpath_lazy ) {
+				$lampandpath_image['loading'] = 'lazy';
+			}
+			the_post_thumbnail( 'lampandpath-card', $lampandpath_image );
 		} else {
 			lampandpath_icon( 'lamp-mark', array( 'size' => 40 ) );
 		}

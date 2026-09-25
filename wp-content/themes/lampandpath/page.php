@@ -21,7 +21,8 @@ get_header();
 			<div class="mx-auto max-w-site px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
 				<div class="max-w-[720px]">
 					<?php if ( has_post_thumbnail() ) : ?>
-						<figure class="mb-10">
+						<?php // Important, because core's unlayered :where(figure) margin beats Tailwind's layered utilities. ?>
+						<figure class="mb-10!">
 							<?php the_post_thumbnail( 'large', array( 'class' => 'h-auto w-full rounded-[20px]' ) ); ?>
 						</figure>
 					<?php endif; ?>

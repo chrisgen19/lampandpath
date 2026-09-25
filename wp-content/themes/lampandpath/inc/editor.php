@@ -2,8 +2,9 @@
 /**
  * Block editor: styles, color palette and font sizes that match the front end.
  *
- * assets/css/editor.css is built from src/css/editor.css and shares the design
- * tokens and article typography with the front end (src/css/content.css).
+ * The editor stylesheet (assets/css/editor.css) is built from src/css/editor.css
+ * and shares the design tokens and article typography with the front end
+ * (src/css/content.css).
  *
  * @package Lampandpath
  */
@@ -116,16 +117,6 @@ function lampandpath_editor_setup() {
 	add_theme_support( 'disable-custom-font-sizes' );
 }
 add_action( 'after_setup_theme', 'lampandpath_editor_setup' );
-
-/**
- * Loads the theme fonts in the block editor canvas.
- */
-function lampandpath_editor_fonts() {
-	if ( is_admin() ) {
-		wp_enqueue_style( 'lampandpath-fonts', lampandpath_fonts_url(), array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Google Fonts rejects extra query args.
-	}
-}
-add_action( 'enqueue_block_assets', 'lampandpath_editor_fonts' );
 
 /**
  * Applies the Season color to the editor canvas when it differs from the default.

@@ -1,0 +1,9 @@
+#!/bin/sh
+# WP-CLI, run as the web server user (www-data) so files it creates, such as
+# the images `wp lampandpath seed` imports, stay writable by WordPress.
+# Coolify's terminal and scheduled tasks run as root; no --allow-root needed.
+if [ "$(id -u)" = "0" ]; then
+	exec runuser -u www-data -- env HOME=/tmp /usr/local/bin/wp-cli.phar --path=/var/www/html "$@"
+fi
+
+exec /usr/local/bin/wp-cli.phar --path=/var/www/html "$@"
