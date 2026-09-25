@@ -8,6 +8,11 @@
 !/composer.json
 !/composer.lock
 !/phpcs.xml.dist
+# Production image and Coolify stack
+!/Dockerfile
+!/docker-compose.yml
+!/.dockerignore
+!/docker/
 !/docs/
 !/wp-content/
 
