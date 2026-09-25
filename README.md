@@ -12,6 +12,8 @@ Only code we own is tracked (see `.gitignore`):
 - `wp-content/themes/lampandpath/`: the theme (presentation only)
 - `wp-content/plugins/lampandpath-core/`: content model, forms and the `wp lampandpath seed` command
 - `docs/design/homepage.html`: the homepage design reference the theme is built from
+- `Dockerfile`, `docker-compose.yml`, `docker/`: the production image and the Coolify stack (see [Deploying with Coolify](#deploying-with-coolify))
+- `composer.json`, `phpcs.xml.dist`: PHP coding standards tooling
 
 Not tracked: WordPress core, `wp-config.php`, `wp-content/uploads/`, third-party plugins and the database.
 
@@ -119,6 +121,82 @@ pnpm build   # minified build of both files; run before committing
 
 The block editor offers the design's colors (the Season color entries follow the Customizer) and type sizes only.
 
+The fonts (Alegreya and Hanken Grotesk, SIL Open Font License) are self-hosted in `assets/fonts/` and declared in `src/css/fonts.css`; the two needed for the first paint are preloaded.
+
 Tailwind finds class names by scanning the theme's PHP and JS files, so always write complete class strings (never build them like `'bg-' . $color`).
 
 Season color, header and footer content are edited in Appearance > Customize.
+
+## Coding standards
+
+PHP follows the WordPress coding standards, checked with PHPCS against `phpcs.xml.dist` (theme and plugin, WordPress 6.5+, PHP 7.4+). Composer is only used for this tooling; the theme and plugin have no Composer dependencies.
+
+```bash
+ddev composer install     # once
+ddev composer lint        # check the theme and plugin
+ddev composer lint:fix    # fix what can be fixed automatically
+```
+
+## Deploying with Coolify
+
+Production runs on [Coolify](https://coolify.io) from `docker-compose.yml`:
+
+- `wordpress`: built from the `Dockerfile`, the official `wordpress:7.1-php8.4-apache` image with this theme and plugin built in, plus WP-CLI
+- `mariadb`: MariaDB 11.8
+
+The code always comes from the image. The web root is a volume that keeps uploads and `wp-config.php`, and on every start `docker/entrypoint.sh` refreshes WordPress core, the theme and the plugin from the image, so each deploy ships exactly what is on `main`. wp-admin cannot install or update plugins, themes or WordPress itself (`DISALLOW_FILE_MODS`): change them in this repo and redeploy. WordPress security releases arrive with a redeploy, since the image follows the latest 7.1.x.
+
+### First deploy
+
+1. In Coolify, create a resource from this GitHub repository (branch `main`), choose the **Docker Compose** build pack and set **Docker Compose Location** to `/docker-compose.yml`.
+2. Enter the site's domain in the `wordpress` service's **Domains** field, e.g. `https://lampandpath.org` (the container listens on port 80). Coolify generates the database user and passwords.
+3. Under **Environment Variables**, set the mailbox the site sends email from (prayer request notifications, password resets). Without `SMTP_HOST` the site cannot send email.
+
+   | Variable | Example | Notes |
+   |---|---|---|
+   | `SMTP_HOST` | `smtp.hostinger.com` | |
+   | `SMTP_PORT` | `587` | |
+   | `SMTP_SECURE` | `tls` | `ssl` for port 465 |
+   | `SMTP_USER`, `SMTP_PASSWORD` | the mailbox login | |
+   | `SMTP_FROM` | `hello@lampandpath.org` | Usually has to be the mailbox's own address |
+
+4. Deploy, then open the **Terminal** of the `wordpress` container and install WordPress once. `wp` runs as the web server user, so no `--allow-root` is needed.
+
+   ```bash
+   wp core install --url=https://lampandpath.org --title="Lamp & Path" --admin_user=YOUR_NAME --admin_email=you@example.com --prompt=admin_password
+   wp theme activate lampandpath
+   wp plugin activate lampandpath-core
+   wp lampandpath seed --skip-content
+   ```
+
+   `--skip-content` sets up the pages, categories, menus and settings without the demo writers and articles. Leave it off for a demo or staging site.
+
+5. Add two **Scheduled Tasks** to the resource:
+   - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp cron event run --due-now`. WordPress's own cron trigger calls the site's public URL, which a container often cannot reach, so without this scheduled articles and verses would not be published on time.
+   - **Database backup**: container `mariadb`, daily (for example `0 3 * * *`). It keeps 14 days of dumps in the `mariadb-backups` volume:
+
+     ```bash
+     MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb-dump --single-transaction -uroot "$MARIADB_DATABASE" | gzip > "/backups/wordpress-$(date +%F).sql.gz" && find /backups -name "*.sql.gz" -mtime +14 -delete
+     ```
+
+6. Turn on automatic deployments for the resource, so every push to `main` redeploys.
+
+### Backups
+
+Database dumps (from the scheduled task) live in the `mariadb-backups` volume and uploads in the `wordpress-files` volume, both on the server. Coolify's built-in database backups cover standalone database resources, not a database inside a Compose stack, so also keep copies off the server, for example with Hostinger's VPS backups.
+
+### Moving content from a local site
+
+```bash
+ddev export-db --file=lampandpath.sql.gz
+```
+
+Copy `lampandpath.sql.gz` and the `wp-content/uploads` folder to the server (e.g. with `scp`). Then, on the server, copy both into the `wordpress` container (`docker ps` shows its name), import, and switch the URLs:
+
+```bash
+docker cp lampandpath.sql.gz CONTAINER:/tmp/
+docker cp uploads/. CONTAINER:/var/www/html/wp-content/uploads/
+docker exec CONTAINER chown -R www-data:www-data /var/www/html/wp-content/uploads
+docker exec CONTAINER sh -c 'gunzip -c /tmp/lampandpath.sql.gz | wp db import -'
+docker exec CONTAINER wp search-replace https://lampandpath.ddev.site https://lampandpath.org --all-tables
+```
