@@ -5,9 +5,10 @@
  * Tailwind scans the whole theme folder (minus node_modules and CSS files)
  * for class names, so classes must appear as complete strings in PHP/JS.
  *
- * tokens.css and content.css are shared with editor.css (block editor styles).
+ * fonts.css, tokens.css and content.css are shared with editor.css (block editor styles).
  */
 @import "tailwindcss" source("../..");
+@import "./fonts.css";
 @import "./tokens.css";
 @import "./content.css";
 @plugin "@tailwindcss/typography";

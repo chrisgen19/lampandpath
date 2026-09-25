@@ -1,6 +1,6 @@
 <?php
 /**
- * Front-end styles, scripts and font loading.
+ * Front-end styles, scripts and font preloading.
  *
  * @package Lampandpath
  */
@@ -18,25 +18,15 @@ function lampandpath_asset_version( $relative_path ) {
 }
 
 /**
- * Returns the Google Fonts stylesheet URL for Alegreya and Hanken Grotesk.
- *
- * @return string
- */
-function lampandpath_fonts_url() {
-	return 'https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&family=Hanken+Grotesk:wght@400..700&display=swap';
-}
-
-/**
  * Enqueues theme styles and scripts.
+ *
+ * The fonts are self-hosted: app.css declares them (src/css/fonts.css).
  */
 function lampandpath_scripts() {
-	// Google Fonts rejects extra query args, so no version is added.
-	wp_enqueue_style( 'lampandpath-fonts', lampandpath_fonts_url(), array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-
 	wp_enqueue_style(
 		'lampandpath-app',
 		get_theme_file_uri( 'assets/css/app.css' ),
-		array( 'lampandpath-fonts' ),
+		array(),
 		lampandpath_asset_version( 'assets/css/app.css' )
 	);
 
@@ -97,24 +87,29 @@ function lampandpath_interactions_config() {
 }
 
 /**
- * Adds preconnect hints so the Google Fonts CSS and font files start downloading early.
+ * Preloads the two fonts every page needs for its first paint.
  *
- * @param array  $urls          URLs to print for resource hints.
- * @param string $relation_type The relation type the URLs are printed for.
+ * Without this the browser only finds them after downloading and parsing
+ * app.css. The URLs must match the ones in src/css/fonts.css exactly (no
+ * version query), or the browser downloads each font twice. The italic and
+ * the latin-ext files are left to load on demand.
+ *
+ * @param array $resources Resources to preload.
  * @return array
  */
-function lampandpath_resource_hints( $urls, $relation_type ) {
-	if ( 'preconnect' === $relation_type ) {
-		$urls[] = 'https://fonts.googleapis.com';
-		$urls[] = array(
-			'href' => 'https://fonts.gstatic.com',
-			'crossorigin',
+function lampandpath_preload_fonts( $resources ) {
+	foreach ( array( 'hanken-grotesk-latin', 'alegreya-latin' ) as $font ) {
+		$resources[] = array(
+			'href'        => get_theme_file_uri( 'assets/fonts/' . $font . '.woff2' ),
+			'as'          => 'font',
+			'type'        => 'font/woff2',
+			'crossorigin' => 'anonymous',
 		);
 	}
 
-	return $urls;
+	return $resources;
 }
-add_filter( 'wp_resource_hints', 'lampandpath_resource_hints', 10, 2 );
+add_filter( 'wp_preload_resources', 'lampandpath_preload_fonts' );
 
 /**
  * Enqueues the "Load more" script on paged listings (assets/js/feed.js).

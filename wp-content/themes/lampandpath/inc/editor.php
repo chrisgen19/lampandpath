@@ -119,16 +119,6 @@ function lampandpath_editor_setup() {
 add_action( 'after_setup_theme', 'lampandpath_editor_setup' );
 
 /**
- * Loads the theme fonts in the block editor canvas.
- */
-function lampandpath_editor_fonts() {
-	if ( is_admin() ) {
-		wp_enqueue_style( 'lampandpath-fonts', lampandpath_fonts_url(), array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Google Fonts rejects extra query args.
-	}
-}
-add_action( 'enqueue_block_assets', 'lampandpath_editor_fonts' );
-
-/**
  * Applies the Season color to the editor canvas when it differs from the default.
  *
  * @param array $settings Block editor settings.
