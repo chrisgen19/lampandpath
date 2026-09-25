@@ -10,7 +10,8 @@
  * Environment: SMTP_HOST, SMTP_PORT (default 587), SMTP_SECURE ("tls" by
  * default, "ssl", or empty for none), SMTP_USER and SMTP_PASSWORD (when the
  * server needs a login), and SMTP_FROM (sender address, often required to be
- * the SMTP account's own address).
+ * the SMTP account's own address). A login is never sent unencrypted: with
+ * SMTP_USER set, an empty SMTP_SECURE still means STARTTLS.
  *
  * @package Lampandpath_Core
  */
@@ -34,11 +35,15 @@ function lampandpath_core_smtp( $phpmailer ) {
 
 	// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer's property names.
 	$phpmailer->isSMTP();
-	$phpmailer->Host        = $host;
-	$phpmailer->Port        = $port ? $port : 587;
-	$phpmailer->SMTPSecure  = false === $secure ? 'tls' : (string) $secure;
-	$phpmailer->SMTPAutoTLS = '' !== $phpmailer->SMTPSecure;
+	$phpmailer->Host       = $host;
+	$phpmailer->Port       = $port ? $port : 587;
+	$phpmailer->SMTPSecure = false === $secure ? 'tls' : (string) $secure;
+	// PHPMailer still upgrades an unencrypted connection with STARTTLS whenever the server offers it.
 	if ( '' !== $user ) {
+		// Credentials must not travel in clear text, so a login requires encryption.
+		if ( '' === $phpmailer->SMTPSecure ) {
+			$phpmailer->SMTPSecure = 'tls';
+		}
 		$phpmailer->SMTPAuth = true;
 		$phpmailer->Username = $user;
 		$phpmailer->Password = (string) getenv( 'SMTP_PASSWORD' );
