@@ -49,6 +49,26 @@ function lampandpath_site_brand( $display = 'flex' ) {
 }
 
 /**
+ * Prints a favicon of the lamp mark in the Season color until a Site Icon is set.
+ *
+ * Without any icon, browsers request /favicon.ico and get a 404 on every page.
+ * An inline SVG needs no extra request and follows the Season color.
+ */
+function lampandpath_default_favicon() {
+	if ( has_site_icon() ) {
+		return;
+	}
+
+	$svg = str_replace(
+		array( '<svg ', 'currentColor' ),
+		array( '<svg xmlns="http://www.w3.org/2000/svg" ', lampandpath_accent() ),
+		lampandpath_get_icon( 'lamp-mark', array( 'size' => 32 ) )
+	);
+	printf( '<link rel="icon" href="%s" type="image/svg+xml">' . "\n", esc_attr( 'data:image/svg+xml,' . rawurlencode( $svg ) ) );
+}
+add_action( 'wp_head', 'lampandpath_default_favicon' );
+
+/**
  * Keeps an uploaded logo at the header's height.
  *
  * @param array $attributes Custom logo <img> attributes.
