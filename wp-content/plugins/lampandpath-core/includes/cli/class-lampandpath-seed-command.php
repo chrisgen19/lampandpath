@@ -90,10 +90,11 @@ class Lampandpath_Seed_Command {
 	 * Every run resets the site title, tagline, permalink structure, reading
 	 * settings (front page and posts page) and privacy policy page to the
 	 * design's values. The timezone is set to Asia/Manila only while the site is
-	 * still on WordPress's default (UTC). Everything else is reused and never
-	 * overwritten, so the command is safe to run repeatedly. Menus only fill empty
-	 * menu locations unless --reset-menus is passed, so menus assigned or edited
-	 * in wp-admin are left alone.
+	 * still on WordPress's default (UTC); WordPress saves the "UTC+0" choice the
+	 * same way, so choose "UTC" to keep a site on UTC. Everything else is reused
+	 * and never overwritten, so the command is safe to run repeatedly. Menus only
+	 * fill empty menu locations unless --reset-menus is passed, so menus assigned
+	 * or edited in wp-admin are left alone.
 	 *
 	 * ## OPTIONS
 	 *
@@ -158,12 +159,16 @@ class Lampandpath_Seed_Command {
 	/**
 	 * Sets the site timezone while the site still has WordPress's default (UTC).
 	 *
-	 * A timezone chosen in Settings > General is kept. Switching moves the start
-	 * of the site's day, so verses dated under UTC would change over hours late:
-	 * each one is first moved to midnight of its day in the new timezone, which
-	 * also reschedules its publishing (or publishes it, if that midnight has passed).
-	 * The timezone is saved last, so if a verse cannot be moved, or the run stops
-	 * partway, the site stays on UTC and the next run tries again.
+	 * A timezone chosen in Settings > General is kept, except "UTC+0": WordPress
+	 * saves it as an empty timezone and a zero offset, exactly like a fresh
+	 * install, so it cannot be told apart ("UTC" is saved by name and kept).
+	 *
+	 * Switching moves the start of the site's day, so verses dated under UTC
+	 * would change over hours late: each one is first moved to midnight of its
+	 * day in the new timezone, which also reschedules its publishing (or
+	 * publishes it, if that midnight has passed). The timezone is saved last, so
+	 * if a verse cannot be moved, or the run stops partway, the site stays on UTC
+	 * and the next run tries again.
 	 */
 	private function seed_timezone() {
 		if ( get_option( 'timezone_string' ) || (float) get_option( 'gmt_offset' ) ) {
