@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Lamp & Path Core
  * Description:       Content model, forms and developer tooling for the Lamp & Path site. The lampandpath theme handles presentation.
- * Version:           0.3.0
+ * Version:           1.0.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Chris Diomampo
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LAMPANDPATH_CORE_VERSION', '0.3.0' );
+define( 'LAMPANDPATH_CORE_VERSION', '1.0.0' );
 define( 'LAMPANDPATH_CORE_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once LAMPANDPATH_CORE_DIR . 'includes/post-types.php';
