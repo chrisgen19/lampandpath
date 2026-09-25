@@ -46,10 +46,10 @@ The site runs at https://lampandpath.ddev.site.
 
 `ddev wp lampandpath seed` sets up the site from the design:
 
-- **Structure:** site title, permalinks, categories, topic tags, pages, menus and reading settings
+- **Structure:** site title, timezone (Asia/Manila), permalinks, categories, topic tags, pages, menus and reading settings
 - **Demo content:** 6 writers, the design's 11 articles (with featured images from `plugins/lampandpath-core/seed/images/`), the "Where are you today?" collections, today's verse plus 7 scheduled ones, 3 reading plans and 4 prayer requests (one awaiting approval). Dates are relative to the day you run it.
 
-Every run resets the site title, tagline, permalink structure (`/%postname%/`), reading settings (static front page "Home", posts page "Articles") and privacy policy page to the design's values. Everything else is reused and never overwritten, so it is safe to run again: menus only fill empty menu locations, existing pages keep their content and (unless they are drafts) their status, and view counts are only set on new articles. WordPress's own "Hello world!" post and "Sample Page" are moved to the trash, but only while they are unedited.
+Every run resets the site title, tagline, permalink structure (`/%postname%/`), reading settings (static front page "Home", posts page "Articles") and privacy policy page to the design's values. The timezone is only set while the site is still on WordPress's default (UTC), so a timezone chosen in Settings > General is kept. The exception is "UTC+0", which WordPress saves exactly like the default: to keep a site on UTC, choose "UTC" instead. When it switches, existing verses move to midnight Manila time on their day. The timezone is saved only after every verse has moved, so if one fails the site stays on UTC and the next run tries again. Everything else is reused and never overwritten, so it is safe to run again: menus only fill empty menu locations, existing pages keep their content and (unless they are drafts) their status, and view counts are only set on new articles. WordPress's own "Hello world!" post and "Sample Page" are moved to the trash, but only while they are unedited.
 
 - `--reset-menus` rebuilds the seeded menus and reassigns their locations (this discards menu edits made in wp-admin)
 - `--skip-content` only sets up the structure, with no demo writers, articles, verses, plans, prayers or images
