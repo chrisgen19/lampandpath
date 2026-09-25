@@ -12,7 +12,11 @@ set -eu
 src=/usr/src/wordpress
 dest=/var/www/html
 
-# WordPress core: everything except wp-content.
+# WordPress core: everything except wp-content. The old copy goes first, so a
+# file that a newer WordPress no longer ships cannot linger and stay reachable
+# (WordPress's own updater deletes those too). Only wp-content and
+# wp-config.php are kept; the rest of the web root always matches the image.
+find "$dest" -mindepth 1 -maxdepth 1 ! -name wp-content ! -name wp-config.php -exec rm -rf {} +
 tar --create --directory "$src" --exclude=./wp-content . | tar --extract --directory "$dest"
 
 # The default wp-content files (index.php guards, default themes and plugins),

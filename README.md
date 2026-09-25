@@ -144,7 +144,7 @@ Production runs on [Coolify](https://coolify.io) from `docker-compose.yml`:
 - `wordpress`: built from the `Dockerfile`, the official `wordpress:7.1-php8.4-apache` image with this theme and plugin built in, plus WP-CLI
 - `mariadb`: MariaDB 11.8
 
-The code always comes from the image. The web root is a volume that keeps uploads and `wp-config.php`, and on every start `docker/entrypoint.sh` refreshes WordPress core, the theme and the plugin from the image, so each deploy ships exactly what is on `main`. wp-admin cannot install or update plugins, themes or WordPress itself (`DISALLOW_FILE_MODS`): change them in this repo and redeploy. WordPress security releases arrive with a redeploy, since the image follows the latest 7.1.x.
+The code always comes from the image. The web root is a volume that keeps uploads and `wp-config.php`, and on every start `docker/entrypoint.sh` refreshes WordPress core, the theme and the plugin from the image, so each deploy ships exactly what is on `main`. Anything else added to the web root outside `wp-content` is removed on the next start. wp-admin cannot install or update plugins, themes or WordPress itself (`DISALLOW_FILE_MODS`): change them in this repo and redeploy. WordPress security releases arrive with a redeploy, since the image follows the latest 7.1.x.
 
 ### First deploy
 
