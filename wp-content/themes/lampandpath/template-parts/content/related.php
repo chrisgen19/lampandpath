@@ -30,6 +30,8 @@ if ( ! $lampandpath_related ) {
 					array(
 						'heading' => 'h3',
 						'layout'  => 'stack',
+						// Rendered inside the article's loop, but always below the article.
+						'lazy'    => true,
 					)
 				);
 			}

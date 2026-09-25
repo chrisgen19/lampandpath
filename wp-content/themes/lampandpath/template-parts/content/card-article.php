@@ -9,6 +9,7 @@
  * - heading (string) Heading tag for the title, "h2" by default.
  * - layout  (string) "row" (default): image beside the text, for lists.
  *                    "stack": a boxed card with the image on top and no excerpt, for grids.
+ * - lazy    (bool)   Lazy-load the image. Default: outside the main query loop (see below).
  *
  * @package Lampandpath
  */
@@ -19,6 +20,10 @@ $lampandpath_category = lampandpath_primary_category();
 $lampandpath_author   = (int) get_the_author_meta( 'ID' );
 $lampandpath_minutes  = lampandpath_reading_time_label();
 $lampandpath_link     = get_permalink();
+
+// WordPress picks eager or lazy loading in the main query loop (archives). Elsewhere (the homepage
+// list, REST responses) cards sit below the fold, so they wait.
+$lampandpath_lazy = isset( $args['lazy'] ) ? (bool) $args['lazy'] : ! in_the_loop();
 
 if ( $lampandpath_stacked ) {
 	$lampandpath_class = array(
@@ -46,14 +51,15 @@ if ( $lampandpath_stacked ) {
 	<a href="<?php echo esc_url( $lampandpath_link ); ?>" tabindex="-1" aria-hidden="true" class="<?php echo esc_attr( $lampandpath_class['image'] ); ?>">
 		<?php
 		if ( has_post_thumbnail() ) {
-			the_post_thumbnail(
-				'lampandpath-card',
-				array(
-					'class' => 'h-full w-full object-cover',
-					'alt'   => '',
-					'sizes' => $lampandpath_class['sizes'],
-				)
+			$lampandpath_image = array(
+				'class' => 'h-full w-full object-cover',
+				'alt'   => '',
+				'sizes' => $lampandpath_class['sizes'],
 			);
+			if ( $lampandpath_lazy ) {
+				$lampandpath_image['loading'] = 'lazy';
+			}
+			the_post_thumbnail( 'lampandpath-card', $lampandpath_image );
 		} else {
 			lampandpath_icon( 'lamp-mark', array( 'size' => 40 ) );
 		}
