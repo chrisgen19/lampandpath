@@ -160,8 +160,10 @@ class Lampandpath_Seed_Command {
 	 *
 	 * A timezone chosen in Settings > General is kept. Switching moves the start
 	 * of the site's day, so verses dated under UTC would change over hours late:
-	 * each one is moved to midnight of its day in the new timezone, which also
-	 * reschedules its publishing (or publishes it, if that midnight has passed).
+	 * each one is first moved to midnight of its day in the new timezone, which
+	 * also reschedules its publishing (or publishes it, if that midnight has passed).
+	 * The timezone is saved last, so if a verse cannot be moved, or the run stops
+	 * partway, the site stays on UTC and the next run tries again.
 	 */
 	private function seed_timezone() {
 		if ( get_option( 'timezone_string' ) || (float) get_option( 'gmt_offset' ) ) {
@@ -169,15 +171,48 @@ class Lampandpath_Seed_Command {
 			return;
 		}
 
-		update_option( 'timezone_string', self::TIMEZONE );
+		$moved = $this->move_verses_to_timezone( self::TIMEZONE );
+		if ( false === $moved ) {
+			$this->fail( 'Timezone left on UTC; run the seed again to move the remaining verses and set it.' );
+			return;
+		}
+		if ( ! update_option( 'timezone_string', self::TIMEZONE ) ) {
+			$this->fail( sprintf( 'Timezone: %s could not be saved; the site is still on UTC.', self::TIMEZONE ) );
+			return;
+		}
 
-		$verses = get_posts(
+		WP_CLI::log( sprintf( 'Timezone: %s.', self::TIMEZONE ) );
+		if ( $moved ) {
+			WP_CLI::log( sprintf( 'Verses moved to midnight in the new timezone: %d.', $moved ) );
+		}
+	}
+
+	/**
+	 * Moves the published and scheduled verses to their local date and time in a timezone.
+	 *
+	 * WordPress reads the timezone while the verses are saved, since it schedules
+	 * a verse's publishing from its local date, so the new timezone is filtered
+	 * in until the move is done. Each UTC date is worked out from the verse's own
+	 * local date, so moving a verse that was already moved changes nothing and a
+	 * failed run can simply be repeated.
+	 *
+	 * @param string $timezone Timezone name, e.g. "Asia/Manila".
+	 * @return int|false Number of verses moved, or false if any failed.
+	 */
+	private function move_verses_to_timezone( $timezone ) {
+		$verses       = get_posts(
 			array(
 				'post_type'   => 'lp_verse',
 				'post_status' => array( 'publish', 'future' ),
 				'numberposts' => -1,
 			)
 		);
+		$use_timezone = static function () use ( $timezone ) {
+			return $timezone;
+		};
+		$ok           = true;
+
+		add_filter( 'pre_option_timezone_string', $use_timezone );
 		foreach ( $verses as $verse ) {
 			$updated = wp_update_post(
 				array(
@@ -190,13 +225,12 @@ class Lampandpath_Seed_Command {
 			);
 			if ( is_wp_error( $updated ) ) {
 				$this->fail( sprintf( 'Verse "%s" not moved to the new timezone: %s', $verse->post_title, $updated->get_error_message() ) );
+				$ok = false;
 			}
 		}
+		remove_filter( 'pre_option_timezone_string', $use_timezone );
 
-		WP_CLI::log( sprintf( 'Timezone: %s.', self::TIMEZONE ) );
-		if ( $verses ) {
-			WP_CLI::log( sprintf( 'Verses moved to midnight in the new timezone: %d.', count( $verses ) ) );
-		}
+		return $ok ? count( $verses ) : false;
 	}
 
 	/**
