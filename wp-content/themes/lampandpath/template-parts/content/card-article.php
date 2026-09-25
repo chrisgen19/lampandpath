@@ -38,8 +38,8 @@ if ( $lampandpath_stacked ) {
 	$lampandpath_class = array(
 		'article' => 'flex flex-col gap-5 py-7 sm:flex-row sm:gap-7',
 		// self-start stops the row from stretching the image to the text height, which would override the 3:2 ratio.
-		'image'   => 'flex aspect-[3/2] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-[14px] bg-surface-soft text-accent sm:w-60',
-		'sizes'   => '(min-width: 640px) 240px, 100vw',
+		'image'   => 'flex aspect-[3/2] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-[14px] bg-surface-soft text-accent sm:w-60 lg:w-48 xl:w-60',
+		'sizes'   => '(min-width: 1280px) 240px, (min-width: 1024px) 192px, (min-width: 640px) 240px, 100vw',
 		'body'    => 'flex min-w-0 flex-1 flex-col items-start wrap-anywhere',
 		'title'   => 'mt-2 font-serif text-[26px] leading-[1.22] font-semibold',
 		'byline'  => 'mt-4 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-sm leading-5 text-muted',

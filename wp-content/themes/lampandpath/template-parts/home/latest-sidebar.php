@@ -15,7 +15,7 @@ if ( ! $lampandpath_popular && ! $lampandpath_has_topics ) {
 
 $lampandpath_card_heading = 'font-serif text-[26px] leading-[31px] font-semibold text-ink';
 ?>
-<aside aria-label="<?php esc_attr_e( 'More to read', 'lampandpath' ); ?>" class="flex shrink-0 flex-col gap-8 lg:w-96">
+<aside aria-label="<?php esc_attr_e( 'More to read', 'lampandpath' ); ?>" class="flex shrink-0 flex-col gap-8 lg:w-80 xl:w-96">
 	<?php if ( $lampandpath_popular ) : ?>
 		<section aria-labelledby="popular-heading" class="rounded-[20px] bg-surface-soft p-7">
 			<h2 id="popular-heading" class="<?php echo esc_attr( $lampandpath_card_heading ); ?>"><?php echo esc_html( lampandpath_home_option( 'latest', 'popular_heading' ) ); ?></h2>
