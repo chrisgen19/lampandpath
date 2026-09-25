@@ -172,7 +172,7 @@ The code always comes from the image. The web root is a volume that keeps upload
    `--skip-content` sets up the pages, categories, menus and settings without the demo writers and articles. Leave it off for a demo or staging site.
 
 5. Add two **Scheduled Tasks** to the resource:
-   - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp cron event run --due-now`. WordPress's own trigger on page visits is switched off (`DISABLE_WP_CRON`), since it calls the site's public URL, which a container often cannot reach. Without this task, scheduled articles and verses are never published.
+   - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp core update-db --quiet && wp cron event run --due-now`. The first part applies database updates after a new WordPress release (see below) and does nothing otherwise. WordPress's own trigger on page visits is switched off (`DISABLE_WP_CRON`), since it calls the site's public URL, which a container often cannot reach. Without this task, scheduled articles and verses are never published.
    - **Database backup**: container `mariadb`, daily (for example `0 3 * * *`). It keeps 14 days of dumps in the `mariadb-backups` volume. A backup is only kept, and old ones only deleted, when the dump succeeds; otherwise the task fails and nothing is removed:
 
      ```bash
@@ -183,13 +183,9 @@ The code always comes from the image. The web root is a volume that keeps upload
 
 ### WordPress updates
 
-The image tag names no WordPress version, because the official image is only built for the latest release: a deploy brings the newest WordPress, security and major releases alike. Coolify may build from the base image already on the server, so when a WordPress release comes out, pull it on the server (over SSH or in Coolify's server terminal) and redeploy:
+The image tag names no WordPress version, because the official image is only built for the latest release. Coolify pulls it on every build, so each deploy brings the newest WordPress, security and major releases alike. To install a release without a code change, click **Redeploy**, then check `wp core version` in the `wordpress` container's terminal. When a release changes the database, the WordPress cron task updates it within five minutes.
 
-```bash
-docker pull wordpress:php8.4-apache
-```
-
-Then check `wp core version` in the `wordpress` container's terminal. After a major release, also run `wp core update-db` there (wp-admin asks for it otherwise).
+A major release reaches the site with the first deploy after it comes out. To check the theme against it first, update the local site (`ddev wp core update`) when it is announced.
 
 ### Backups
 

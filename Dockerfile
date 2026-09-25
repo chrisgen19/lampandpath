@@ -4,7 +4,8 @@
 #
 # No WordPress version in the tag: the official image is only built for the
 # latest release, so a pinned version would stop getting security fixes once
-# the next release is out.
+# the next release is out. Coolify pulls the tag on every build, and the cron
+# scheduled task applies any database update (README, "WordPress updates").
 FROM wordpress:php8.4-apache
 
 # WP-CLI, for installing and seeding from Coolify's terminal and for scheduled
