@@ -173,10 +173,10 @@ The code always comes from the image. The web root is a volume that keeps upload
 
 5. Add two **Scheduled Tasks** to the resource:
    - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp cron event run --due-now`. WordPress's own cron trigger calls the site's public URL, which a container often cannot reach, so without this scheduled articles and verses would not be published on time.
-   - **Database backup**: container `mariadb`, daily (for example `0 3 * * *`). It keeps 14 days of dumps in the `mariadb-backups` volume:
+   - **Database backup**: container `mariadb`, daily (for example `0 3 * * *`). It keeps 14 days of dumps in the `mariadb-backups` volume. A backup is only kept, and old ones only deleted, when the dump succeeds; otherwise the task fails and nothing is removed:
 
      ```bash
-     MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb-dump --single-transaction -uroot "$MARIADB_DATABASE" | gzip > "/backups/wordpress-$(date +%F).sql.gz" && find /backups -name "*.sql.gz" -mtime +14 -delete
+     f="/backups/wordpress-$(date +%F).sql"; MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb-dump --single-transaction -uroot "$MARIADB_DATABASE" > "$f.part" && gzip -f "$f.part" && mv "$f.part.gz" "$f.gz" && find /backups -name "*.sql.gz" -mtime +14 -delete || { rm -f "$f.part" "$f.part.gz"; exit 1; }
      ```
 
 6. Turn on automatic deployments for the resource, so every push to `main` redeploys.
@@ -197,6 +197,8 @@ Copy `lampandpath.sql.gz` and the `wp-content/uploads` folder to the server (e.g
 docker cp lampandpath.sql.gz CONTAINER:/tmp/
 docker cp uploads/. CONTAINER:/var/www/html/wp-content/uploads/
 docker exec CONTAINER chown -R www-data:www-data /var/www/html/wp-content/uploads
-docker exec CONTAINER sh -c 'gunzip -c /tmp/lampandpath.sql.gz | wp db import -'
+docker exec CONTAINER gunzip /tmp/lampandpath.sql.gz
+docker exec CONTAINER wp db import /tmp/lampandpath.sql
 docker exec CONTAINER wp search-replace https://lampandpath.ddev.site https://lampandpath.org --all-tables
+docker exec CONTAINER rm /tmp/lampandpath.sql
 ```
