@@ -41,6 +41,21 @@
 		color: var(--color-placeholder);
 		opacity: 1;
 	}
+
+	/*
+	 * The theme itself has no motion; this also stills any that core blocks,
+	 * embeds or future styles add, for visitors who ask their system for less.
+	 */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
 }
 
 /* Styles for markup WordPress generates, where utility classes cannot be added. */
