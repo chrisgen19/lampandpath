@@ -55,8 +55,10 @@ register_activation_hook( __FILE__, 'lampandpath_core_activate' );
 /**
  * Flushes rewrite rules once after the plugin is updated.
  *
- * Deploys update the plugin in place (git pull), so the activation hook never
- * runs again and new post type or taxonomy URLs would 404 until the next flush.
+ * Deploys replace the plugin's files without activating it again (the Docker
+ * image copies them into place on every container start), so the activation
+ * hook never runs again and new post type or taxonomy URLs would 404 until the
+ * next flush.
  * Runs after the post types register on init (priority 10).
  */
 function lampandpath_core_maybe_upgrade() {
