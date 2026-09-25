@@ -5,8 +5,11 @@
 # /var/www/html is a volume so that uploads and wp-config.php survive
 # redeploys. The official entrypoint only copies WordPress into it when it is
 # empty, so without this step every deploy after the first would keep serving
-# the old core, theme and plugin. The image is the single source of truth for
+# the old core, themes and plugins. The image is the single source of truth for
 # code; wp-content (uploads) and wp-config.php are left alone.
+#
+# Each copy is a find -exec ... + so that a failed cp fails find, and set -e
+# stops the start instead of serving a partly copied site.
 set -eu
 
 src=/usr/src/wordpress
@@ -17,18 +20,18 @@ dest=/var/www/html
 # (WordPress's own updater deletes those too). Only wp-content and
 # wp-config.php are kept; the rest of the web root always matches the image.
 find "$dest" -mindepth 1 -maxdepth 1 ! -name wp-content ! -name wp-config.php -exec rm -rf {} +
-tar --create --directory "$src" --exclude=./wp-content . | tar --extract --directory "$dest"
+find "$src" -mindepth 1 -maxdepth 1 ! -name wp-content -exec cp -a -t "$dest" {} +
 
-# The default wp-content files (index.php guards, default themes and plugins),
-# adding what is missing and leaving everything already there alone. The image
-# pre-creates empty wp-content folders, so "is wp-content there" is no test.
-tar --create --directory "$src" ./wp-content | tar --extract --directory "$dest" --skip-old-files
-
-# This repo's theme and plugin, replaced so deleted files do not linger.
-for dir in themes/lampandpath plugins/lampandpath-core; do
+# Themes and plugins, replaced as a whole for the same reason. wp-admin cannot
+# install or update either (DISALLOW_FILE_MODS), so the image holds them all.
+mkdir -p "$dest/wp-content"
+for dir in themes plugins; do
 	rm -rf "${dest:?}/wp-content/$dir"
-	mkdir -p "$dest/wp-content/$(dirname "$dir")"
 	cp -a "$src/wp-content/$dir" "$dest/wp-content/$dir"
 done
+
+# The rest of the image's wp-content (the index.php guard). Uploads and anything
+# else already in wp-content stay.
+find "$src/wp-content" -mindepth 1 -maxdepth 1 ! -name themes ! -name plugins -exec cp -a -t "$dest/wp-content" {} +
 
 exec docker-entrypoint.sh "$@"

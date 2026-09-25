@@ -141,10 +141,10 @@ ddev composer lint:fix    # fix what can be fixed automatically
 
 Production runs on [Coolify](https://coolify.io) from `docker-compose.yml`:
 
-- `wordpress`: built from the `Dockerfile`, the official `wordpress:7.1-php8.4-apache` image with this theme and plugin built in, plus WP-CLI
+- `wordpress`: built from the `Dockerfile`, the official `wordpress:php8.4-apache` image (the latest WordPress release) with this theme and plugin built in, plus WP-CLI
 - `mariadb`: MariaDB 11.8
 
-The code always comes from the image. The web root is a volume that keeps uploads and `wp-config.php`, and on every start `docker/entrypoint.sh` refreshes WordPress core, the theme and the plugin from the image, so each deploy ships exactly what is on `main`. Anything else added to the web root outside `wp-content` is removed on the next start. wp-admin cannot install or update plugins, themes or WordPress itself (`DISALLOW_FILE_MODS`): change them in this repo and redeploy. WordPress security releases arrive with a redeploy, since the image follows the latest 7.1.x.
+The code always comes from the image. The web root is a volume that keeps uploads and `wp-config.php`, and on every start `docker/entrypoint.sh` refreshes WordPress core, the themes and the plugins from the image, so each deploy ships exactly what is on `main`. Anything else added to the web root outside `wp-content`, and any theme or plugin that is not in the image, is removed on the next start. wp-admin cannot install or update plugins, themes or WordPress itself (`DISALLOW_FILE_MODS`): change them in this repo and redeploy.
 
 ### First deploy
 
@@ -156,7 +156,7 @@ The code always comes from the image. The web root is a volume that keeps upload
    |---|---|---|
    | `SMTP_HOST` | `smtp.hostinger.com` | |
    | `SMTP_PORT` | `587` | |
-   | `SMTP_SECURE` | `tls` | `ssl` for port 465 |
+   | `SMTP_SECURE` | `tls` | `ssl` for port 465, `none` only for a server without a login |
    | `SMTP_USER`, `SMTP_PASSWORD` | the mailbox login | |
    | `SMTP_FROM` | `hello@lampandpath.org` | Usually has to be the mailbox's own address |
 
@@ -172,7 +172,7 @@ The code always comes from the image. The web root is a volume that keeps upload
    `--skip-content` sets up the pages, categories, menus and settings without the demo writers and articles. Leave it off for a demo or staging site.
 
 5. Add two **Scheduled Tasks** to the resource:
-   - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp cron event run --due-now`. WordPress's own cron trigger calls the site's public URL, which a container often cannot reach, so without this scheduled articles and verses would not be published on time.
+   - **WordPress cron** (required): container `wordpress`, every 5 minutes (`*/5 * * * *`), command `wp cron event run --due-now`. WordPress's own trigger on page visits is switched off (`DISABLE_WP_CRON`), since it calls the site's public URL, which a container often cannot reach. Without this task, scheduled articles and verses are never published.
    - **Database backup**: container `mariadb`, daily (for example `0 3 * * *`). It keeps 14 days of dumps in the `mariadb-backups` volume. A backup is only kept, and old ones only deleted, when the dump succeeds; otherwise the task fails and nothing is removed:
 
      ```bash
@@ -180,6 +180,16 @@ The code always comes from the image. The web root is a volume that keeps upload
      ```
 
 6. Turn on automatic deployments for the resource, so every push to `main` redeploys.
+
+### WordPress updates
+
+The image tag names no WordPress version, because the official image is only built for the latest release: a deploy brings the newest WordPress, security and major releases alike. Coolify may build from the base image already on the server, so when a WordPress release comes out, pull it on the server (over SSH or in Coolify's server terminal) and redeploy:
+
+```bash
+docker pull wordpress:php8.4-apache
+```
+
+Then check `wp core version` in the `wordpress` container's terminal. After a major release, also run `wp core update-db` there (wp-admin asks for it otherwise).
 
 ### Backups
 
