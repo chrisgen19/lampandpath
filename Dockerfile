@@ -8,8 +8,12 @@ FROM wordpress:7.1-php8.4-apache
 COPY --from=wordpress:cli-2-php8.4 /usr/local/bin/wp /usr/local/bin/wp-cli.phar
 COPY --chmod=0755 docker/wp /usr/local/bin/wp
 
-# Long browser caching for static files.
-RUN a2enmod expires headers
+# The MariaDB client, which WP-CLI's database commands (wp db import, export) run;
+# and long browser caching for static files.
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends mariadb-client \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& a2enmod expires headers
 COPY docker/apache-cache.conf /etc/apache2/conf-enabled/lampandpath-cache.conf
 
 # The code goes where the official image keeps WordPress; docker/entrypoint.sh
